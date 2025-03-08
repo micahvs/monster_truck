@@ -57,6 +57,37 @@
     </div>
     
     <div id="score">SCORE: 0</div>
+    
+    <div style="position: absolute; bottom: 20px; right: 20px; color: #fff; background-color: rgba(0, 0, 0, 0.6); padding: 10px; border-radius: 5px; border: 1px solid #ff00ff;">
+        <label for="musicToggle" style="cursor: pointer; user-select: none;">
+            <input type="checkbox" id="musicToggle" checked> 80s Synthwave
+        </label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="50" style="width: 100px; margin-left: 10px;">
+    </div>
+
+    <!-- Audio elements for MP3 playback -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="basic%20synth%20track.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Music selection prompt -->
+    <div id="musicPrompt" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+         background-color: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; border: 2px solid #ff00ff; 
+         color: white; text-align: center; display: none; z-index: 1000;">
+        <h3 style="color: #00ffff; margin-top: 0;">Choose Music Option</h3>
+        <button id="startMp3Btn" style="background: #ff00ff; color: white; border: none; padding: 10px 20px; 
+                margin: 10px; cursor: pointer; border-radius: 5px; display: block; width: 200px;">
+            MP3 Track
+        </button>
+        <button id="startGeneratedBtn" style="background: #00ffff; color: black; border: none; padding: 10px 20px; 
+                margin: 10px; cursor: pointer; border-radius: 5px; display: block; width: 200px;">
+            Generated Synthwave
+        </button>
+        <button id="startNoMusicBtn" style="background: #333; color: white; border: none; padding: 10px 20px; 
+                margin: 10px; cursor: pointer; border-radius: 5px; display: block; width: 200px;">
+            No Music
+        </button>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
@@ -107,6 +138,9 @@
         // Create obstacles
         createObstacles();
         
+        // Create boundary walls
+        createBoundary();
+        
         // Create the monster truck
         createTruck();
         
@@ -117,8 +151,292 @@
         // Handle window resize
         window.addEventListener('resize', onWindowResize);
         
+        // Set up music controls
+        setupMusic();
+        
         // Start animation loop
         animate();
+    }
+    
+    // Music system variables
+    let audioContext = null;
+    let gainNode = null;
+    let oscillator = null;
+    let musicPlaying = false;
+    let musicMode = 'none'; // 'mp3', 'generated', or 'none'
+    
+    function setupMusic() {
+        const musicToggle = document.getElementById('musicToggle');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const musicPrompt = document.getElementById('musicPrompt');
+        const startMp3Btn = document.getElementById('startMp3Btn');
+        const startGeneratedBtn = document.getElementById('startGeneratedBtn');
+        const startNoMusicBtn = document.getElementById('startNoMusicBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        
+        // Set toggle to not checked initially
+        musicToggle.checked = false;
+        
+        // Set initial volume
+        bgMusic.volume = volumeSlider.value / 100;
+        
+        // Make sure all DOM elements exist before showing prompt
+        if (musicPrompt && startMp3Btn && startGeneratedBtn && startNoMusicBtn) {
+            // Show music prompt after a short delay
+            setTimeout(() => {
+                musicPrompt.style.display = 'block';
+            }, 500);
+        } else {
+            console.error("Missing music UI elements");
+        }
+        
+        // Safely set up event listeners
+        if (startMp3Btn) {
+            startMp3Btn.addEventListener('click', () => {
+                if (musicPrompt) musicPrompt.style.display = 'none';
+                musicMode = 'mp3';
+                startMp3Music();
+                if (musicToggle) musicToggle.checked = true;
+            });
+        }
+        
+        if (startGeneratedBtn) {
+            startGeneratedBtn.addEventListener('click', () => {
+                if (musicPrompt) musicPrompt.style.display = 'none';
+                musicMode = 'generated';
+                startSynthMusic();
+                if (musicToggle) musicToggle.checked = true;
+            });
+        }
+        
+        if (startNoMusicBtn) {
+            startNoMusicBtn.addEventListener('click', () => {
+                if (musicPrompt) musicPrompt.style.display = 'none';
+                musicMode = 'none';
+                if (musicToggle) musicToggle.checked = false;
+            });
+        }
+        
+        // Toggle music on/off
+        if (musicToggle) {
+            musicToggle.addEventListener('change', () => {
+                if (musicToggle.checked) {
+                    // Resume current music mode or default to MP3
+                    if (musicMode === 'generated') {
+                        if (!musicPlaying) startSynthMusic();
+                    } else {
+                        // Default to MP3 if no mode selected yet
+                        if (musicMode === 'none') musicMode = 'mp3';
+                        startMp3Music();
+                    }
+                } else {
+                    // Stop all music
+                    stopAllMusic();
+                }
+            });
+            
+            // Add music type selector - right-click toggles between MP3 and generated
+            musicToggle.addEventListener('contextmenu', (e) => {
+                e.preventDefault(); // Prevent context menu
+                
+                if (musicToggle.checked) {
+                    stopAllMusic();
+                    
+                    // Toggle between MP3 and generated
+                    if (musicMode === 'mp3') {
+                        musicMode = 'generated';
+                        startSynthMusic();
+                    } else {
+                        musicMode = 'mp3';
+                        startMp3Music();
+                    }
+                }
+                
+                return false;
+            });
+        }
+        
+        // Adjust volume for both audio systems
+        if (volumeSlider && bgMusic) {
+            volumeSlider.addEventListener('input', () => {
+                const volume = volumeSlider.value / 100;
+                
+                // For Web Audio API
+                if (gainNode) {
+                    gainNode.gain.value = volume;
+                }
+                
+                // For HTML5 Audio
+                bgMusic.volume = volume;
+            });
+        }
+    }
+    
+    function startMp3Music() {
+        // Stop any generated music first
+        stopSynthMusic();
+        
+        // Play the MP3
+        const bgMusic = document.getElementById('bgMusic');
+        
+        try {
+            const playPromise = bgMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("MP3 playback failed:", error);
+                    
+                    // If MP3 fails, fall back to generated music
+                    musicMode = 'generated';
+                    startSynthMusic();
+                });
+            }
+        } catch (e) {
+            console.error("MP3 playback error:", e);
+            
+            // If MP3 fails, fall back to generated music
+            musicMode = 'generated';
+            startSynthMusic();
+        }
+    }
+    
+    function stopAllMusic() {
+        // Stop MP3
+        const bgMusic = document.getElementById('bgMusic');
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        
+        // Stop generated music
+        stopSynthMusic();
+    }
+    
+    // Generate synthwave-like music programmatically using Web Audio API
+    function startSynthMusic() {
+        try {
+            // Create audio context if it doesn't exist
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Create gain node for volume control
+                gainNode = audioContext.createGain();
+                gainNode.gain.value = document.getElementById('volumeSlider').value / 100;
+                gainNode.connect(audioContext.destination);
+            }
+            
+            // Create synthwave-like bass
+            createSynthBassPart();
+            
+            // Create synthwave-like lead arpeggio
+            setTimeout(() => {
+                createSynthLeadPart();
+            }, 1000);
+            
+            musicPlaying = true;
+        } catch (e) {
+            console.error("Web Audio API error:", e);
+        }
+    }
+    
+    function createSynthBassPart() {
+        // Base notes for synthwave
+        const notes = [
+            { note: 55, duration: 0.5 }, // G
+            { note: 55, duration: 0.5 },
+            { note: 62, duration: 0.5 }, // D
+            { note: 55, duration: 0.5 },
+            { note: 58, duration: 0.5 }, // A#
+            { note: 55, duration: 0.5 },
+            { note: 53, duration: 0.5 }, // F
+            { note: 55, duration: 0.5 }
+        ];
+        
+        let currentIndex = 0;
+        
+        function playNextNote() {
+            if (!musicPlaying) return;
+            
+            const note = notes[currentIndex];
+            const osc = audioContext.createOscillator();
+            const noteGain = audioContext.createGain();
+            
+            // Set up oscillator
+            osc.type = 'sawtooth';
+            osc.frequency.value = note.note;
+            
+            // Set up envelope
+            noteGain.gain.value = 0;
+            noteGain.gain.setValueAtTime(0, audioContext.currentTime);
+            noteGain.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+            noteGain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.2);
+            noteGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + note.duration);
+            
+            // Connect nodes
+            osc.connect(noteGain);
+            noteGain.connect(gainNode);
+            
+            // Play note
+            osc.start();
+            osc.stop(audioContext.currentTime + note.duration);
+            
+            // Schedule next note
+            currentIndex = (currentIndex + 1) % notes.length;
+            setTimeout(playNextNote, note.duration * 1000);
+        }
+        
+        // Start playing
+        playNextNote();
+    }
+    
+    function createSynthLeadPart() {
+        // Lead notes for synthwave arpeggio
+        const notes = [
+            { note: 440, duration: 0.125 }, // A4
+            { note: 554, duration: 0.125 }, // C#5
+            { note: 659, duration: 0.125 }, // E5
+            { note: 880, duration: 0.125 }, // A5
+            { note: 659, duration: 0.125 }, // E5
+            { note: 554, duration: 0.125 }, // C#5
+            { note: 440, duration: 0.125 }, // A4
+            { note: 329, duration: 0.125 }  // E4
+        ];
+        
+        let currentIndex = 0;
+        
+        function playNextNote() {
+            if (!musicPlaying) return;
+            
+            const note = notes[currentIndex];
+            const osc = audioContext.createOscillator();
+            const noteGain = audioContext.createGain();
+            
+            // Set up oscillator
+            osc.type = 'square';
+            osc.frequency.value = note.note;
+            
+            // Set up envelope
+            noteGain.gain.value = 0;
+            noteGain.gain.setValueAtTime(0, audioContext.currentTime);
+            noteGain.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+            noteGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + note.duration);
+            
+            // Connect nodes
+            osc.connect(noteGain);
+            noteGain.connect(gainNode);
+            
+            // Play note
+            osc.start();
+            osc.stop(audioContext.currentTime + note.duration);
+            
+            // Schedule next note
+            currentIndex = (currentIndex + 1) % notes.length;
+            setTimeout(playNextNote, note.duration * 1000);
+        }
+        
+        // Start playing
+        playNextNote();
+    }
+    
+    function stopSynthMusic() {
+        musicPlaying = false;
     }
     
     function createGround() {
@@ -176,6 +494,54 @@
                 groundMeshes.push(box);
             }
         }
+    }
+    
+    function createBoundary() {
+        // Create a boundary around the game field
+        const boundarySize = 180; // Slightly smaller than the ground
+        const wallHeight = 15;
+        const wallThickness = 2;
+        
+        // Define the boundary material with gradient effect
+        const boundaryMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff00ff,
+            transparent: true,
+            opacity: 0.5,
+            emissive: 0x330033,
+            shininess: 100
+        });
+        
+        // Create each wall segment
+        const walls = [
+            // North wall
+            { pos: [0, wallHeight/2, -boundarySize/2], size: [boundarySize, wallHeight, wallThickness] },
+            // South wall
+            { pos: [0, wallHeight/2, boundarySize/2], size: [boundarySize, wallHeight, wallThickness] },
+            // East wall
+            { pos: [boundarySize/2, wallHeight/2, 0], size: [wallThickness, wallHeight, boundarySize] },
+            // West wall
+            { pos: [-boundarySize/2, wallHeight/2, 0], size: [wallThickness, wallHeight, boundarySize] }
+        ];
+        
+        // Create all walls
+        walls.forEach(wall => {
+            const geometry = new THREE.BoxGeometry(wall.size[0], wall.size[1], wall.size[2]);
+            const mesh = new THREE.Mesh(geometry, boundaryMaterial);
+            mesh.position.set(wall.pos[0], wall.pos[1], wall.pos[2]);
+            scene.add(mesh);
+            groundMeshes.push(mesh);
+            
+            // Add glowing edge at the top of each wall
+            const edgeGeometry = new THREE.BoxGeometry(wall.size[0] + 0.5, 0.5, wall.size[2] + 0.5);
+            const edgeMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.8
+            });
+            const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+            edge.position.set(wall.pos[0], wallHeight, wall.pos[2]);
+            scene.add(edge);
+        });
     }
     
     function createTruck() {
@@ -506,14 +872,47 @@
             });
         }
         
-        // Boundary check - wrap around instead of reset for better gameplay
-        const groundLimit = 90;
-        if (Math.abs(truck.position.x) > groundLimit || Math.abs(truck.position.z) > groundLimit) {
-            // Bring truck back to opposite side for continuous play
-            if (truck.position.x > groundLimit) truck.position.x = -groundLimit;
-            if (truck.position.x < -groundLimit) truck.position.x = groundLimit;
-            if (truck.position.z > groundLimit) truck.position.z = -groundLimit;
-            if (truck.position.z < -groundLimit) truck.position.z = groundLimit;
+        // Simple boundary collision - just reverse direction
+        const boundaryLimit = 88; // Slightly smaller than the actual boundary walls
+        
+        let hitBoundary = false;
+        
+        // Check X boundary (East/West walls)
+        if (Math.abs(truck.position.x) > boundaryLimit) {
+            hitBoundary = true;
+            
+            // Place truck at boundary limit
+            truck.position.x = Math.sign(truck.position.x) * boundaryLimit;
+        }
+        
+        // Check Z boundary (North/South walls)
+        if (Math.abs(truck.position.z) > boundaryLimit) {
+            hitBoundary = true;
+            
+            // Place truck at boundary limit
+            truck.position.z = Math.sign(truck.position.z) * boundaryLimit;
+        }
+        
+        // If hit a boundary, simply reverse direction
+        if (hitBoundary) {
+            // Simply reverse the speed (direction stays the same)
+            truck.userData.speed = -truck.userData.speed * 0.8;
+            
+            // Add a small bounce effect
+            truck.position.y += 0.4;
+            
+            // Add score for wall hit
+            score += 10;
+            document.getElementById('score').textContent = `SCORE: ${score}`;
+            
+            // Visual feedback - small bounce animation
+            truck.userData.wallBounceTime = 8;
+        }
+        
+        // Handle bounce oscillation effect if active
+        if (truck.userData.wallBounceTime > 0) {
+            truck.position.y += Math.sin(truck.userData.wallBounceTime * 0.5) * 0.05;
+            truck.userData.wallBounceTime--;
         }
         
         // Add a subtle "bounce" effect when changing direction at speed
