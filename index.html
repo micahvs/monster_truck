@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster Truck Game - Realistic Controls</title>
+    <link rel="icon" href="data:,">
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #120023;
+            font-family: Arial, sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            color: #fff;
+            text-align: center;
+            z-index: 100;
+            font-size: 16px;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 14px;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ffff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        Monster Truck - Realistic Controls Edition
+    </div>
+    
+    <div id="controls">
+        <p>Up/Down: Accelerate/Brake</p>
+        <p>Left/Right: Steer</p>
+        <p>W/S: Camera Height</p>
+        <p>A/D: Camera Distance</p>
+    </div>
+    
+    <div id="score">SCORE: 0</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    // Improved monster truck game with realistic driving controls
+    let scene, camera, renderer, truck;
+    let score = 0;
+    let groundMeshes = [];
+    
+    // Control variables
+    const keys = {};
+    const truckSpeed = {
+        x: 0,
+        z: 0
+    };
+    
+    // Camera settings
+    const cameraSettings = {
+        height: 20,
+        distance: 30,
+        angle: 0.3
+    };
+    
+    function init() {
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x120023); // Dark purple background
+        
+        // Create camera with angled view
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 20, 30); // Set initial position directly
+        
+        // Create renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xff00ff, 0.8);
+        directionalLight.position.set(0, 50, 20);
+        scene.add(directionalLight);
+        
+        // Create ground with grid
+        createGround();
+        
+        // Create obstacles
+        createObstacles();
+        
+        // Create the monster truck
+        createTruck();
+        
+        // Set up controls
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+        
+        // Handle window resize
+        window.addEventListener('resize', onWindowResize);
+        
+        // Start animation loop
+        animate();
+    }
+    
+    function createGround() {
+        // Create a large flat ground
+        const groundSize = 200;
+        
+        // Solid ground
+        const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+        const groundMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x000000, 
+            side: THREE.DoubleSide
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+        groundMeshes.push(ground);
+        
+        // Grid lines
+        const gridGeometry = new THREE.PlaneGeometry(groundSize, groundSize, 50, 50);
+        const gridMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xff00ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.5
+        });
+        const grid = new THREE.Mesh(gridGeometry, gridMaterial);
+        grid.rotation.x = -Math.PI / 2;
+        grid.position.y = 0.1;
+        scene.add(grid);
+        groundMeshes.push(grid);
+    }
+    
+    function createObstacles() {
+        // Create a ramp
+        const rampGeometry = new THREE.BoxGeometry(20, 5, 10);
+        const rampMaterial = new THREE.MeshPhongMaterial({ color: 0x00ffff });
+        const ramp = new THREE.Mesh(rampGeometry, rampMaterial);
+        ramp.position.set(0, 2.5, 30);
+        ramp.rotation.x = -Math.PI / 20; // Gentle slope
+        scene.add(ramp);
+        groundMeshes.push(ramp);
+        
+        // Add random boxes as obstacles
+        for (let i = 0; i < 10; i++) {
+            const size = 2 + Math.random() * 3;
+            const x = (Math.random() - 0.5) * 160;
+            const z = (Math.random() - 0.5) * 160;
+            
+            if (Math.abs(x) > 20 || Math.abs(z) > 20) { // Don't place too close to spawn
+                const boxGeometry = new THREE.BoxGeometry(size, size, size);
+                const boxMaterial = new THREE.MeshPhongMaterial({ color: 0x00ffff });
+                const box = new THREE.Mesh(boxGeometry, boxMaterial);
+                box.position.set(x, size/2, z);
+                scene.add(box);
+                groundMeshes.push(box);
+            }
+        }
+    }
+    
+    function createTruck() {
+        // Create a better-looking truck, but still with NO ROTATION
+        truck = new THREE.Group();
+        
+        // Chassis with improved visuals
+        const chassisGeometry = new THREE.BoxGeometry(4.5, 1, 8);
+        const chassisMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff00ff,
+            shininess: 80,
+            specular: 0xffffff
+        });
+        const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+        chassis.position.y = 0.5;
+        truck.add(chassis);
+        
+        // Add neon trim to chassis
+        const trimGeometry = new THREE.BoxGeometry(4.6, 0.1, 8.1);
+        const trimMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const trim = new THREE.Mesh(trimGeometry, trimMaterial);
+        trim.position.y = 1.05;
+        truck.add(trim);
+        
+        // Cab with better detailing
+        const cabGeometry = new THREE.BoxGeometry(4, 1.5, 3);
+        const cabMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff00ff,
+            shininess: 90,
+            specular: 0xffffff
+        });
+        const cab = new THREE.Mesh(cabGeometry, cabMaterial);
+        cab.position.set(0, 1.5, -2);
+        truck.add(cab);
+        
+        // Windshield
+        const windshieldGeometry = new THREE.PlaneGeometry(3.5, 1.2);
+        const windshieldMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide
+        });
+        const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
+        windshield.position.set(0, 1.8, -3.2);
+        windshield.rotation.x = 0.3;
+        truck.add(windshield);
+        
+        // Add headlights
+        const headlightGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+        const headlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        
+        // Left headlight
+        const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+        leftHeadlight.position.set(-1.5, 0.8, -4);
+        truck.add(leftHeadlight);
+        
+        // Right headlight
+        const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+        rightHeadlight.position.set(1.5, 0.8, -4);
+        truck.add(rightHeadlight);
+        
+        // Create spinning wheels that can animate
+        const wheelRadius = 1.4;
+        const wheelWidth = 1.0;
+        const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 24);
+        const wheelMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x333333,
+            shininess: 30
+        });
+        
+        // Wheel hub material
+        const hubGeometry = new THREE.CylinderGeometry(wheelRadius * 0.5, wheelRadius * 0.5, wheelWidth + 0.1, 16);
+        const hubMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xdddddd,
+            shininess: 100,
+            specular: 0xffffff
+        });
+        
+        // Store wheel references
+        truck.userData.wheels = [];
+        
+        const wheelPositions = [
+            {x: -2.2, y: wheelRadius, z: -3, steering: true}, // Front left
+            {x: 2.2, y: wheelRadius, z: -3, steering: true},  // Front right
+            {x: -2.2, y: wheelRadius, z: 3, steering: false}, // Rear left
+            {x: 2.2, y: wheelRadius, z: 3, steering: false}   // Rear right
+        ];
+        
+        wheelPositions.forEach(pos => {
+            // Create wheel group
+            const wheelGroup = new THREE.Group();
+            wheelGroup.position.set(pos.x, pos.y, pos.z);
+            
+            // Create wheel mesh
+            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            wheel.rotation.z = Math.PI / 2; // Correct wheel orientation
+            wheelGroup.add(wheel);
+            
+            // Add hub cap
+            const hub = new THREE.Mesh(hubGeometry, hubMaterial);
+            hub.rotation.z = Math.PI / 2;
+            wheelGroup.add(hub);
+            
+            // Add wheel group to truck
+            truck.add(wheelGroup);
+            
+            // Store wheel reference
+            truck.userData.wheels.push({
+                group: wheelGroup,
+                mesh: wheel,
+                steering: pos.steering,
+                rotation: 0
+            });
+        });
+        
+        // Add fancy neon underglow
+        const glowGeometry = new THREE.PlaneGeometry(6, 10);
+        const glowMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ffff, 
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide
+        });
+        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+        glow.rotation.x = Math.PI / 2;
+        glow.position.y = -0.5;
+        truck.add(glow);
+        
+        // Set initial position
+        truck.position.set(0, 2, 0);
+        
+        // Make sure there's absolutely no rotation initially
+        truck.rotation.set(0, 0, 0);
+        
+        // Add to scene
+        scene.add(truck);
+        
+        // Add properties for movement
+        truck.userData = {
+            speed: 0,
+            direction: 0, // Direction in radians
+            height: 2,    // Height above ground
+            onGround: true,
+            wasOnRamp: false,
+            wheels: truck.userData.wheels
+        };
+    }
+    
+    function onKeyDown(event) {
+        keys[event.key.toLowerCase()] = true;
+    }
+    
+    function onKeyUp(event) {
+        keys[event.key.toLowerCase()] = false;
+    }
+    
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    
+    function updateTruck() {
+        // Enhanced driving constants for better feel
+        const ACCELERATION = 0.08;       // Smoother acceleration
+        const MAX_SPEED = 2.0;           // Higher top speed
+        const MAX_REVERSE_SPEED = 1.0;   // Decent reverse speed
+        const STEERING_SPEED = 0.04;     // Base steering rate
+        const DRIFT_FACTOR = 0.92;       // Slight drift effect
+        
+        // Dynamic handling variables
+        const speed = truck.userData.speed || 0;
+        const speedPercent = Math.min(1, Math.abs(speed) / MAX_SPEED);
+        
+        // Get current direction and store old direction for drift calculations
+        const oldDirection = truck.userData.direction || 0;
+        let newDirection = oldDirection;
+        
+        // Changed controls: left/right arrows steer, up/down drive forward/backward
+        // Steer only when moving or very slightly when stationary
+        if (Math.abs(speed) > 0.1) {
+            // Normal steering when moving
+            const adaptiveSteering = STEERING_SPEED * (1 - speedPercent * 0.5);
+            
+            if (keys['arrowleft']) {
+                newDirection += adaptiveSteering; // Turn left
+            }
+            if (keys['arrowright']) {
+                newDirection -= adaptiveSteering; // Turn right
+            }
+        } else {
+            // Very subtle steering when stationary
+            if (keys['arrowleft']) {
+                newDirection += STEERING_SPEED * 0.2; 
+            }
+            if (keys['arrowright']) {
+                newDirection -= STEERING_SPEED * 0.2;
+            }
+        }
+        
+        // Add momentum to steering for smoother direction changes
+        truck.userData.direction = oldDirection * 0.1 + newDirection * 0.9;
+        
+        // Actually ROTATE the truck model to match its direction
+        truck.rotation.y = truck.userData.direction;
+        
+        // Calculate movement vectors - always relative to truck's current rotation
+        // Forward is always the direction the truck is facing
+        const dirX = Math.sin(truck.userData.direction);
+        const dirZ = Math.cos(truck.userData.direction);
+        
+        // Enhanced acceleration with better responsiveness
+        if (keys['arrowup']) {
+            // Progressive acceleration - slower at start, quicker in the middle range
+            const accelFactor = 1 - (Math.pow(speed / MAX_SPEED, 2) * 0.8);
+            truck.userData.speed = Math.min(truck.userData.speed + ACCELERATION * accelFactor, MAX_SPEED);
+        } else if (keys['arrowdown']) {
+            if (speed > 0.1) {
+                // Braking when going forward - stronger braking effect
+                truck.userData.speed *= 0.9;
+            } else {
+                // Reverse acceleration
+                truck.userData.speed = Math.max(truck.userData.speed - ACCELERATION, -MAX_REVERSE_SPEED);
+            }
+        } else {
+            // Natural deceleration - more gradual
+            truck.userData.speed *= 0.98;
+            
+            // Eliminate tiny speeds
+            if (Math.abs(truck.userData.speed) < 0.01) {
+                truck.userData.speed = 0;
+            }
+        }
+        
+        // Handle drifting effect for more fun driving
+        // Direction of travel isn't exactly the direction the truck is facing
+        let moveX, moveZ;
+        
+        if (Math.abs(truck.userData.speed) > 0.5) {
+            // At speed, allow some drift
+            const driftDirection = oldDirection;
+            
+            // Blend actual direction with drift direction
+            moveX = (dirX * truck.userData.speed * (1 - DRIFT_FACTOR)) + 
+                   (Math.sin(driftDirection) * truck.userData.speed * DRIFT_FACTOR);
+            moveZ = (dirZ * truck.userData.speed * (1 - DRIFT_FACTOR)) + 
+                   (Math.cos(driftDirection) * truck.userData.speed * DRIFT_FACTOR);
+        } else {
+            // At low speeds, no drift
+            moveX = dirX * truck.userData.speed;
+            moveZ = dirZ * truck.userData.speed;
+        }
+        
+        // Update truck position with momentum
+        truck.position.x += moveX;
+        truck.position.z += moveZ;
+        
+        // Handle terrain and jumps - improved for better feel
+        // Check if on ramp
+        if (truck.position.z >= 25 && truck.position.z <= 35 && 
+            truck.position.x >= -10 && truck.position.x <= 10) {
+            
+            // On the ramp - calculate height based on position with smoother curve
+            const rampProgress = (30 - truck.position.z) / 5;
+            const rampHeight = 0.5 + Math.max(0, Math.min(5, rampProgress * rampProgress * 6));
+            
+            // Set truck height and add a little bounce when hitting the ramp at speed
+            if (truck.userData.wasOnRamp) {
+                // Already on ramp, smooth movement
+                truck.position.y = 1 + rampHeight;
+            } else {
+                // Just hit the ramp
+                truck.position.y = 1 + rampHeight + (Math.abs(truck.userData.speed) * 0.5);
+                
+                // Jump effect when hitting ramp at speed
+                if (Math.abs(truck.userData.speed) > 1.0) {
+                    // Add a little "jump" at high speeds
+                    truck.position.y += Math.abs(truck.userData.speed) * 0.2;
+                }
+            }
+            
+            // Remember we're on the ramp
+            truck.userData.wasOnRamp = true;
+            
+            // Add score when on the ramp
+            if (rampHeight > 2) {
+                score += 1;
+                document.getElementById('score').textContent = `SCORE: ${score}`;
+            }
+        } else {
+            // Regular ground height
+            truck.position.y = 2;
+            truck.userData.wasOnRamp = false;
+        }
+        
+        // Animate wheels based on speed
+        if (truck.userData.wheels) {
+            truck.userData.wheels.forEach(wheel => {
+                wheel.rotation += truck.userData.speed * 0.2;
+            });
+        }
+        
+        // Only allow rotation around y-axis (steering)
+        truck.rotation.x = 0;
+        truck.rotation.z = 0;
+        
+        // Update wheel steering to match direction
+        if (truck.userData.wheels) {
+            truck.userData.wheels.forEach(wheel => {
+                if (wheel.steering) {
+                    // Visualize steering by rotating front wheels relative to truck
+                    // The steering wheels turn in the direction of the turn
+                    const steeringAmount = Math.sin(truck.userData.direction - oldDirection) * 5;
+                    const steeringDirection = keys['arrowleft'] ? 0.4 : 
+                                            keys['arrowright'] ? -0.4 : 
+                                            steeringAmount;
+                    
+                    // Apply smooth steering transition
+                    const currentSteering = wheel.group.rotation.y || 0;
+                    const newSteering = currentSteering * 0.8 + steeringDirection * 0.2;
+                    wheel.group.rotation.y = newSteering;
+                }
+                
+                // Rotate wheels based on speed
+                wheel.rotation += truck.userData.speed * 0.2;
+                wheel.mesh.rotation.x = wheel.rotation;
+            });
+        }
+        
+        // Boundary check - wrap around instead of reset for better gameplay
+        const groundLimit = 90;
+        if (Math.abs(truck.position.x) > groundLimit || Math.abs(truck.position.z) > groundLimit) {
+            // Bring truck back to opposite side for continuous play
+            if (truck.position.x > groundLimit) truck.position.x = -groundLimit;
+            if (truck.position.x < -groundLimit) truck.position.x = groundLimit;
+            if (truck.position.z > groundLimit) truck.position.z = -groundLimit;
+            if (truck.position.z < -groundLimit) truck.position.z = groundLimit;
+        }
+        
+        // Add a subtle "bounce" effect when changing direction at speed
+        // This makes driving feel more dynamic without actually rotating the truck
+        if (Math.abs(truck.userData.speed) > 0.5) {
+            // If turning sharply at speed, adjust truck height slightly
+            const turnSharpness = Math.abs(truck.userData.direction - truck.userData.lastDirection || 0);
+            
+            if (turnSharpness > 0.01) {
+                // Add a tiny bounce proportional to turn sharpness and speed
+                truck.position.y += Math.min(0.1, turnSharpness * Math.abs(truck.userData.speed) * 0.05);
+            }
+        }
+        
+        // Remember current direction for next frame
+        truck.userData.lastDirection = truck.userData.direction;
+    }
+    
+    function updateCamera() {
+        // Update camera settings based on keys
+        if (keys['w']) cameraSettings.height += 0.5;
+        if (keys['s']) cameraSettings.height = Math.max(5, cameraSettings.height - 0.5);
+        if (keys['a']) cameraSettings.distance = Math.max(10, cameraSettings.distance - 0.5);
+        if (keys['d']) cameraSettings.distance += 0.5;
+        
+        updateCameraPosition();
+    }
+    
+    function updateCameraPosition() {
+        // Only update if truck exists
+        if (!truck) return;
+        
+        // Calculate camera position based on truck direction and camera settings
+        const truckPos = truck.position;
+        const truckDir = truck.rotation.y; // Use actual truck rotation now
+        
+        // Position camera behind truck
+        const cameraX = truckPos.x - Math.sin(truckDir) * cameraSettings.distance;
+        const cameraZ = truckPos.z - Math.cos(truckDir) * cameraSettings.distance;
+        const cameraY = truckPos.y + cameraSettings.height;
+        
+        // Smoothly move camera (interpolate for smoother following)
+        camera.position.x = camera.position.x * 0.92 + cameraX * 0.08;
+        camera.position.y = camera.position.y * 0.92 + cameraY * 0.08;
+        camera.position.z = camera.position.z * 0.92 + cameraZ * 0.08;
+        
+        // Look at truck with slight offset
+        camera.lookAt(
+            truckPos.x, 
+            truckPos.y + 2, 
+            truckPos.z
+        );
+    }
+    
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        try {
+            // Only run updates after everything is initialized
+            if (truck && camera && renderer) {
+                // Update truck
+                updateTruck();
+                
+                // Update camera
+                updateCamera();
+                
+                // Render
+                renderer.render(scene, camera);
+            }
+        } catch (error) {
+            console.error("Animation error:", error);
+        }
+    }
+    
+    // Start the game
+    init();
+    </script>
+</body>
+</html>
