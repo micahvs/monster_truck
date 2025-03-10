@@ -1,2 +1,2 @@
-// game.js - Empty file
-// All code is now in index.html for simplicity
+// All code is now inlined in index.html for simplicity
+// This file is kept for reference

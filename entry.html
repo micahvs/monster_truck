@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster Truck Stadium</title>
+    <style>
+        body {
+            background-color: #120023;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        
+        p {
+            font-size: 1.2rem;
+            margin: 1rem 0 2rem;
+            max-width: 600px;
+        }
+        
+        .button {
+            background: linear-gradient(to bottom, #ff00ff, #cc00cc);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+        
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+        }
+        
+        .button.secondary {
+            background: linear-gradient(to bottom, #00ffff, #00cccc);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .button.secondary:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .controls {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 2rem;
+            border: 1px solid #ff00ff;
+            max-width: 600px;
+        }
+        
+        .controls h2 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+        
+        .controls ul {
+            text-align: left;
+            line-height: 1.6;
+        }
+        
+        .neon-glow {
+            text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff;
+        }
+        
+        .truck-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #ff00ff;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="truck-icon">🚚</div>
+    <h1>MONSTER TRUCK <span class="neon-glow">STADIUM</span></h1>
+    <p>An epic multiplayer monster truck game with 80s synthwave aesthetics!</p>
+    
+    <div>
+        <a href="index.html" class="button">PLAY GAME</a>
+        <a href="https://github.com/yourusername/monster-truck" class="button secondary">VIEW CODE</a>
+    </div>
+    
+    <div class="controls">
+        <h2>How to Play</h2>
+        <ul>
+            <li><strong>Arrow Keys:</strong> Drive the truck (Up/Down for acceleration, Left/Right for steering)</li>
+            <li><strong>W/S:</strong> Adjust camera height</li>
+            <li><strong>A/D:</strong> Adjust camera distance</li>
+            <li><strong>C:</strong> Toggle chat window</li>
+            <li><strong>GOAL:</strong> Crash into obstacles for points and perform epic jumps!</li>
+        </ul>
+    </div>
+</body>
+</html>

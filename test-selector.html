@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Truck Selectors</title>
+    <style>
+        body {
+            background-color: #120023;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Truck Selector</h1>
+    
+    <!-- Truck Selection -->
+    <div style="background-color: rgba(0, 0, 0, 0.5); padding: 20px; border-radius: 10px; margin-top: 1rem; border: 1px solid #ff00ff; max-width: 600px;">
+        <h2 style="color: #00ffff; margin-top: 0; text-align: center;">CHOOSE YOUR TRUCK</h2>
+        
+        <div style="display: flex; justify-content: space-between; margin: 20px 0;">
+            <!-- Standard Truck Option -->
+            <div id="standardTruck" class="truck-option" style="width: 30%; background-color: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; border: 2px solid #444; cursor: pointer; text-align: center;">
+                <div style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 80px; height: 30px; background-color: #ff00ff; position: relative;">
+                        <div style="width: 70px; height: 20px; background-color: #ff00ff; position: absolute; top: -15px; left: 5px;"></div>
+                        <div style="width: 16px; height: 16px; border-radius: 50%; background-color: #fff; position: absolute; bottom: -8px; left: 10px;"></div>
+                        <div style="width: 16px; height: 16px; border-radius: 50%; background-color: #fff; position: absolute; bottom: -8px; right: 10px;"></div>
+                    </div>
+                </div>
+                <h3 style="color: #ffffff; margin: 10px 0;">STANDARD</h3>
+                <p style="color: #aaaaaa; font-size: 0.9rem;">Balanced speed and control</p>
+            </div>
+            
+            <!-- Monster Truck Option -->
+            <div id="monsterTruck" class="truck-option" style="width: 30%; background-color: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; border: 2px solid #444; cursor: pointer; text-align: center;">
+                <div style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 80px; height: 40px; background-color: #ff00ff; position: relative;">
+                        <div style="width: 70px; height: 25px; background-color: #ff00ff; position: absolute; top: -20px; left: 5px;"></div>
+                        <div style="width: 22px; height: 22px; border-radius: 50%; background-color: #fff; position: absolute; bottom: -11px; left: 10px;"></div>
+                        <div style="width: 22px; height: 22px; border-radius: 50%; background-color: #fff; position: absolute; bottom: -11px; right: 10px;"></div>
+                        <div style="width: 85px; height: 5px; background-color: #888; position: absolute; top: -25px; left: -2px; border-radius: 3px;"></div>
+                    </div>
+                </div>
+                <h3 style="color: #ffffff; margin: 10px 0;">MONSTER</h3>
+                <p style="color: #aaaaaa; font-size: 0.9rem;">Power over rough terrain</p>
+            </div>
+            
+            <!-- Racer Truck Option -->
+            <div id="racerTruck" class="truck-option" style="width: 30%; background-color: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; border: 2px solid #444; cursor: pointer; text-align: center;">
+                <div style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 90px; height: 25px; background-color: #ff00ff; position: relative;">
+                        <div style="width: 60px; height: 15px; background-color: #ff00ff; position: absolute; top: -12px; left: 5px; transform: skew(-15deg);"></div>
+                        <div style="width: 14px; height: 14px; border-radius: 50%; background-color: #fff; position: absolute; bottom: -7px; left: 15px;"></div>
+                        <div style="width: 14px; height: 14px; border-radius: 50%; background-color: #fff; position: absolute; bottom: -7px; right: 15px;"></div>
+                        <div style="width: 30px; height: 12px; background-color: #ff00ff; position: absolute; top: -5px; right: -5px; transform: skew(0, -15deg);"></div>
+                    </div>
+                </div>
+                <h3 style="color: #ffffff; margin: 10px 0;">RACER</h3>
+                <p style="color: #aaaaaa; font-size: 0.9rem;">Speed and acceleration</p>
+            </div>
+        </div>
+        
+        <!-- Color Selection -->
+        <h3 style="color: #00ffff; margin: 30px 0 15px; text-align: center;">SELECT COLOR</h3>
+        
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 15px;">
+            <div class="color-option" data-color="#ff00ff" style="width: 40px; height: 40px; background-color: #ff00ff; border-radius: 50%; cursor: pointer; border: 3px solid #fff;"></div>
+            <div class="color-option" data-color="#00ffff" style="width: 40px; height: 40px; background-color: #00ffff; border-radius: 50%; cursor: pointer;"></div>
+            <div class="color-option" data-color="#ffff00" style="width: 40px; height: 40px; background-color: #ffff00; border-radius: 50%; cursor: pointer;"></div>
+            <div class="color-option" data-color="#ff0000" style="width: 40px; height: 40px; background-color: #ff0000; border-radius: 50%; cursor: pointer;"></div>
+            <div class="color-option" data-color="#00ff00" style="width: 40px; height: 40px; background-color: #00ff00; border-radius: 50%; cursor: pointer;"></div>
+            <div class="color-option" data-color="#0000ff" style="width: 40px; height: 40px; background-color: #0000ff; border-radius: 50%; cursor: pointer;"></div>
+            <div class="color-option" data-color="#ff8800" style="width: 40px; height: 40px; background-color: #ff8800; border-radius: 50%; cursor: pointer;"></div>
+            <div class="color-option" data-color="#8800ff" style="width: 40px; height: 40px; background-color: #8800ff; border-radius: 50%; cursor: pointer;"></div>
+        </div>
+        
+        <div style="text-align: center; color: white;">
+            Selected: <span id="selectedTruckType">STANDARD</span>, <span id="selectedColorName">PINK</span>
+        </div>
+    </div>
+
+    <button id="startButton" style="background: linear-gradient(to bottom, #ff00ff, #cc00cc); color: white; border: none; padding: 15px 35px; font-size: 1.2rem; border-radius: 5px; cursor: pointer; margin-top: 2rem; box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);">START GAME</button>
+    
+    <script>
+        // Track selected truck type and color
+        let selectedTruckType = 'standard';
+        let selectedColor = '#ff00ff';
+        
+        // Function to update truck colors
+        function updateTruckColors() {
+            try {
+                console.log(`Updating truck colors to ${selectedColor}`);
+                const truckPreviews = document.querySelectorAll('.truck-option div div');
+                truckPreviews.forEach(preview => {
+                    preview.style.backgroundColor = selectedColor;
+                });
+            } catch (error) {
+                console.error("Error updating colors:", error);
+            }
+        }
+        
+        // Function to set up truck and color selectors
+        function setupTruckSelectors() {
+            console.log("Setting up truck selectors");
+            
+            // Truck type selection
+            const truckOptions = document.querySelectorAll('.truck-option');
+            truckOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Reset borders
+                    truckOptions.forEach(opt => {
+                        opt.style.border = '2px solid #444';
+                    });
+                    
+                    // Highlight selected
+                    this.style.border = '2px solid #ff00ff';
+                    
+                    // Get truck type from id
+                    selectedTruckType = this.id.replace('Truck', '');
+                    
+                    // Update selected text
+                    document.getElementById('selectedTruckType').textContent = selectedTruckType.toUpperCase();
+                });
+            });
+            
+            // Color selection
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Reset borders
+                    colorOptions.forEach(opt => {
+                        opt.style.border = 'none';
+                    });
+                    
+                    // Highlight selected
+                    this.style.border = '3px solid #fff';
+                    
+                    // Get color from data attribute
+                    selectedColor = this.dataset.color;
+                    
+                    // Update truck previews with selected color
+                    updateTruckColors();
+                    
+                    // Update selected text with color name
+                    const colorNames = {
+                        '#ff00ff': 'PINK',
+                        '#00ffff': 'CYAN',
+                        '#ffff00': 'YELLOW',
+                        '#ff0000': 'RED',
+                        '#00ff00': 'GREEN',
+                        '#0000ff': 'BLUE',
+                        '#ff8800': 'ORANGE',
+                        '#8800ff': 'PURPLE'
+                    };
+                    document.getElementById('selectedColorName').textContent = colorNames[selectedColor] || 'CUSTOM';
+                });
+            });
+            
+            // Initialize with defaults
+            document.getElementById('standardTruck').style.border = '2px solid #ff00ff';
+            updateTruckColors();
+        }
+        
+        // Add start button event listener
+        document.getElementById('startButton').addEventListener('click', function() {
+            alert(`Selected ${selectedTruckType} truck with color ${selectedColor}`);
+        });
+        
+        // Initialize when page loads
+        window.onload = function() {
+            console.log("Window loaded, setting up selectors");
+            setupTruckSelectors();
+        };
+    </script>
+</body>
+</html>

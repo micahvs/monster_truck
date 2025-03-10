@@ -1,0 +1,19 @@
+2025-03-10 06:15:12,239 [INFO] WebSocket server starting on 0.0.0.0:8765
+2025-03-10 06:15:12,245 [INFO] server listening on 0.0.0.0:8765
+2025-03-10 06:15:12,255 [INFO] HTTP server started on port 8080
+2025-03-10 06:15:14,335 [INFO] HTTP: GET / HTTP/1.1
+2025-03-10 06:16:01,439 [INFO] HTTP: GET /game.html HTTP/1.1
+2025-03-10 06:16:01,746 [INFO] connection open
+2025-03-10 06:16:01,747 [INFO] New client connected: 298284b3-f81c-4114-8535-17bef4baa8d5
+2025-03-10 06:16:01,757 [WARNING] Unknown message type: setTruckType
+2025-03-10 06:16:05,520 [INFO] Client disconnected: 298284b3-f81c-4114-8535-17bef4baa8d5
+2025-03-10 06:16:05,521 [INFO] connection closed
+2025-03-10 06:16:13,151 [INFO] HTTP: GET /game.html HTTP/1.1
+2025-03-10 06:16:15,623 [INFO] HTTP: GET /index.html HTTP/1.1
+2025-03-10 06:19:15,242 [INFO] HTTP: GET / HTTP/1.1
+2025-03-10 06:20:53,438 [INFO] HTTP: GET / HTTP/1.1
+2025-03-10 06:22:09,608 [INFO] HTTP: GET /game.html HTTP/1.1
+2025-03-10 06:22:09,903 [INFO] connection open
+2025-03-10 06:22:09,903 [INFO] New client connected: b1f462c2-4e7f-4f29-97f8-09f1cc1e639a
+2025-03-10 06:22:09,910 [WARNING] Unknown message type: setTruckType
+2025-03-10 06:22:12,250 [INFO] Active connections: 1

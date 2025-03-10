@@ -1,0 +1,4133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MONSTER TRUCK STADIUM</title>
+    <link rel="icon" href="data:,">
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #120023;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            color: #fff;
+            text-align: center;
+            z-index: 100;
+            font-size: 18px;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 14px;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ffff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">MONSTER TRUCK STADIUM</div>
+    <div id="controls">
+        <p>Up/Down: Accelerate/Brake</p>
+        <p>Left/Right: Steer</p>
+        <p>W/S: Camera Height</p>
+        <p>A/D: Camera Distance</p>
+        <p>CRASH STUFF!</p>
+    </div>
+    <div id="score">SCORE: 0</div>
+    <div id="health" style="position: absolute; top: 60px; right: 20px; color: #00ffff; background-color: rgba(0, 0, 0, 0.6); padding: 5px 10px; border-radius: 5px; border: 1px solid #ff00ff; font-size: 18px;">
+        HEALTH: <span id="healthValue">100</span>
+        <div style="width: 100%; height: 10px; background-color: #333333; margin-top: 5px; border-radius: 5px; overflow: hidden;">
+            <div id="healthBar" style="width: 100%; height: 100%; background: linear-gradient(to right, #ff0000, #ff00ff); border-radius: 5px;"></div>
+        </div>
+    </div>
+    
+    <!-- Respawn message (hidden by default) -->
+    <div id="respawnMessage" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.8); color: #ff00ff; padding: 20px; border-radius: 10px; border: 2px solid #00ffff; text-align: center; font-size: 24px; display: none; z-index: 50;">
+        <div>TRUCK DESTROYED!</div>
+        <div style="margin-top: 10px; font-size: 18px;">Respawning in <span id="respawnCount">3</span>...</div>
+    </div>
+    
+    <!-- Missing Information Warning -->
+    <div id="missingInfoScreen" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.85); z-index: 100; padding: 20px;">
+        <div style="background-color: rgba(30, 0, 50, 0.8); padding: 30px; border-radius: 15px; border: 2px solid #ff00ff; max-width: 600px; text-align: center;">
+            <h2 style="color: #ff00ff; font-size: 2rem; margin-bottom: 20px; text-shadow: 0 0 10px #ff00ff;">MISSING INFORMATION</h2>
+            
+            <p style="color: white; font-size: 1.2rem; margin-bottom: 30px;">
+                Please configure your truck on the main menu before playing.
+            </p>
+            
+            <a href="index.html" style="background: linear-gradient(to bottom, #ff00ff, #990099); color: white; border: none; padding: 15px 35px; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 0 20px rgba(255, 0, 255, 0.7);">
+                GO TO MENU
+            </a>
+        </div>
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="hitSound" preload="auto">
+        <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAAA3YAlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaW8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQCkQAAAAAAAAN2ij5ZrQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mp3">
+    </audio>
+    
+    <audio id="explosionSound" preload="auto">
+        <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAgAAAgwAYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJinZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnf////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAJkAAAAAAAACgxW1bqdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/jGMQAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxEsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxGIAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mp3">
+    </audio>
+    
+    <audio id="engineSound" preload="auto" loop>
+        <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAAA3YAlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaW8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQCkQAAAAAAAAN2ij5ZrQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mp3">
+    </audio>
+
+    <!-- Music controls -->
+    <div style="position: absolute; bottom: 20px; right: 20px; color: #fff; background-color: rgba(0, 0, 0, 0.6); padding: 10px; border-radius: 5px; border: 1px solid #ff00ff;">
+        <label for="musicToggle" style="cursor: pointer; user-select: none;">
+            <input type="checkbox" id="musicToggle"> Sound Effects
+        </label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="50" style="width: 100px; margin-left: 10px;">
+    </div>
+    
+    <!-- Chat window (hidden by default) -->
+    <div id="chatWindow" style="position: absolute; bottom: 100px; right: 20px; width: 300px; background-color: rgba(0, 0, 0, 0.7); color: white; border: 1px solid #ff00ff; border-radius: 5px; display: none; z-index: 100;">
+        <div style="padding: 10px; border-bottom: 1px solid #ff00ff; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #00ffff; font-weight: bold;">CHAT</span>
+            <button id="closeChatBtn" style="background: none; border: none; color: #ff00ff; cursor: pointer; font-size: 16px;">×</button>
+        </div>
+        <div id="chatMessages" style="height: 200px; overflow-y: auto; padding: 10px; word-wrap: break-word;"></div>
+        <div style="padding: 10px; border-top: 1px solid #ff00ff;">
+            <input type="text" id="chatInput" placeholder="Type message..." style="width: 100%; background-color: rgba(0, 0, 0, 0.5); border: 1px solid #00ffff; color: white; padding: 5px; border-radius: 3px;">
+        </div>
+    </div>
+    
+    <!-- Player list (hidden by default) -->
+    <div id="playerList" style="position: absolute; top: 100px; right: 20px; background-color: rgba(0, 0, 0, 0.7); color: white; border: 1px solid #ff00ff; border-radius: 5px; padding: 10px; min-width: 200px; display: none;">
+        <div style="color: #00ffff; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ff00ff; padding-bottom: 5px;">PLAYERS</div>
+        <div id="playerListContent"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    // Add global error handler for debugging
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error("Error at line " + lineno + ": " + message);
+        alert("JavaScript error at line " + lineno + ": " + message);
+        return true;
+    };
+
+    // Basic monster truck game
+    let scene, camera, renderer, truck;
+    let score = 0;
+    let health = 100; // Starting health
+    let isRespawning = false; // Flag for respawn state
+    let respawnTimer = 0; // Timer for respawn animation
+    let groundMeshes = [];
+    let destructibleObstacles = [];
+    let particles = [];
+    let projectiles = [];
+    let enemyProjectiles = []; // For future enemy projectiles
+    let lastShotTime = 0;
+    const SHOT_COOLDOWN = 100; // 50% shorter cooldown for much faster firing
+    const MAX_HEALTH = 100; // Maximum health value
+    
+    // Multiplayer variables
+    let socket = null;
+    let clientId = null;
+    let nickname = "";
+    let truckColor = "#ff00ff";
+    let isConnected = false;
+    let otherPlayers = {};
+    let chatVisible = false;
+    let obstacleIdCounter = 0;
+    let playersListVisible = false;
+    let lastPositionUpdate = 0;
+    const POSITION_UPDATE_INTERVAL = 50; // Send position updates every 50ms
+    
+    // Control variables
+    const keys = {};
+    let truckSpeed = 0;
+    let truckDirection = 0;
+    
+    // Camera settings - higher and further back for the doubled-size trucks
+    const cameraSettings = {
+        height: 80,      // Increased height for better view of larger truck
+        distance: 140,   // Increased distance for better view of larger truck
+        angle: 0.3
+    };
+    
+    // Audio variables
+    let soundEnabled = false;
+    let engineVolume = 0.5;
+    let engineSound, hitSound, explosionSound;
+    
+    // Sound system
+    const SoundSystem = {
+        init: function() {
+            // Get audio elements
+            engineSound = document.getElementById('engineSound');
+            hitSound = document.getElementById('hitSound');
+            explosionSound = document.getElementById('explosionSound');
+            
+            // Set up volume control
+            const volumeSlider = document.getElementById('volumeSlider');
+            volumeSlider.addEventListener('input', () => {
+                engineVolume = volumeSlider.value / 100;
+                engineSound.volume = engineVolume;
+            });
+            
+            // Set up sound toggle
+            const musicToggle = document.getElementById('musicToggle');
+            musicToggle.addEventListener('change', () => {
+                soundEnabled = musicToggle.checked;
+                if (soundEnabled) {
+                    this.startEngine();
+                } else {
+                    this.stopEngine();
+                }
+            });
+        },
+        
+        playHit: function() {
+            if (!soundEnabled) return;
+            hitSound.currentTime = 0;
+            hitSound.volume = engineVolume * 0.7;
+            hitSound.play().catch(e => console.log("Hit sound failed:", e));
+        },
+        
+        playExplosion: function() {
+            if (!soundEnabled) return;
+            explosionSound.currentTime = 0;
+            explosionSound.volume = engineVolume;
+            explosionSound.play().catch(e => console.log("Explosion sound failed:", e));
+        },
+        
+        startEngine: function() {
+            if (!soundEnabled) return;
+            engineSound.volume = engineVolume * 0.3;
+            engineSound.playbackRate = 0.5;
+            engineSound.play().catch(e => console.log("Engine sound failed:", e));
+        },
+        
+        stopEngine: function() {
+            engineSound.pause();
+        },
+        
+        updateEngine: function(speed) {
+            if (!soundEnabled) return;
+            
+            // Adjust playback rate based on truck speed
+            const speedFactor = Math.abs(speed);
+            const newRate = 0.5 + speedFactor * 0.5; // Between 0.5 and 1.0
+            
+            // Update the engine sound effects
+            engineSound.playbackRate = newRate;
+            
+            // Adjust volume based on speed (louder when accelerating)
+            engineSound.volume = engineVolume * (0.3 + speedFactor * 0.2);
+        }
+    };
+    
+    function init(truckType = 'standard') {
+        // Initialize sound system
+        SoundSystem.init();
+        
+        // Create scene with synthwave aesthetic
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x120023); // Dark purple background
+        
+        // Add synthwave sun/gradient effect - create a large plane in the background
+        const sunGeometry = new THREE.PlaneGeometry(10000, 5000);
+        const sunTexture = createSynthwaveSunTexture();
+        const sunMaterial = new THREE.MeshBasicMaterial({
+            map: sunTexture,
+            transparent: true,
+            opacity: 0.9,
+            depthWrite: false
+        });
+        
+        const sunPlane = new THREE.Mesh(sunGeometry, sunMaterial);
+        sunPlane.position.set(0, 1000, -5000); // Far behind the scene
+        scene.add(sunPlane);
+        
+        // Create camera
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 20, 30);
+        
+        // Create renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+        
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xff00ff, 0.8);
+        directionalLight.position.set(0, 50, 20);
+        scene.add(directionalLight);
+        
+        // Create ground
+        createGround();
+        
+        // Create obstacles
+        createObstacles();
+        
+        // Create boundary walls
+        createBoundary();
+        
+        // Create the truck with the selected type
+        createTruck(truckType);
+        
+        // Set up controls
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+        
+        // Handle window resize
+        window.addEventListener('resize', onWindowResize);
+        
+        // Start animation loop
+        animate();
+    }
+    
+    function createGround() {
+        // Create a MASSIVE flat ground (10x bigger)
+        const groundSize = 5000; // 10x larger
+        
+        // Create synthwave grid ground texture
+        const groundTexture = createSynthwaveGridTexture();
+        
+        // Use the texture for the ground material
+        const groundMaterial = new THREE.MeshStandardMaterial({ 
+            map: groundTexture,
+            emissive: 0x330033,
+            emissiveMap: groundTexture,
+            emissiveIntensity: 0.75,
+            side: THREE.DoubleSide
+        });
+        
+        const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+        groundMeshes.push(ground);
+        
+        // Add fog for depth and synthwave feel
+        scene.fog = new THREE.Fog(0x120023, 1000, 4000);
+        
+        // Add some glowing neon pillars around the scene
+        addNeonPillars(groundSize);
+    }
+    
+    // Create a synthwave grid texture
+    function createSynthwaveGridTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 2048;
+        canvas.height = 2048;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Fill dark background
+        ctx.fillStyle = '#220022';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw horizontal grid lines
+        const majorLinesCount = 20;
+        const minorLinesPerMajor = 5;
+        const minorLinesCount = majorLinesCount * minorLinesPerMajor;
+        
+        // Draw minor grid lines first
+        const minorLineSpacing = canvas.height / minorLinesCount;
+        ctx.lineWidth = 1;
+        
+        for (let i = 0; i <= minorLinesCount; i++) {
+            // Skip lines that will be covered by major lines
+            if (i % minorLinesPerMajor === 0) continue;
+            
+            const y = i * minorLineSpacing;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            
+            // Make lines fade in the distance
+            const distFromCenter = Math.abs(y - canvas.height/2) / (canvas.height/2);
+            const alpha = 0.5 - distFromCenter * 0.3;
+            ctx.strokeStyle = `rgba(50, 0, 80, ${alpha})`;
+            ctx.stroke();
+        }
+        
+        // Draw major grid lines
+        const majorLineSpacing = canvas.height / majorLinesCount;
+        ctx.lineWidth = 2;
+        
+        for (let i = 0; i <= majorLinesCount; i++) {
+            const y = i * majorLineSpacing;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            
+            // Make lines fade in the distance
+            const distFromCenter = Math.abs(y - canvas.height/2) / (canvas.height/2);
+            const alpha = 0.9 - distFromCenter * 0.3;
+            ctx.strokeStyle = `rgba(255, 0, 255, ${alpha})`;
+            ctx.stroke();
+        }
+        
+        // Draw vertical grid lines
+        for (let i = 0; i <= minorLinesCount; i++) {
+            const x = i * minorLineSpacing;
+            
+            // Draw minor lines
+            if (i % minorLinesPerMajor !== 0) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                
+                const distFromCenter = Math.abs(x - canvas.width/2) / (canvas.width/2);
+                const alpha = 0.5 - distFromCenter * 0.3;
+                ctx.strokeStyle = `rgba(0, 50, 80, ${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            } 
+            // Draw major lines
+            else {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                
+                const distFromCenter = Math.abs(x - canvas.width/2) / (canvas.width/2);
+                const alpha = 0.9 - distFromCenter * 0.3;
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        // Create a texture from the canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(10, 10); // Repeat the texture for a larger ground
+        
+        return texture;
+    }
+    
+    // Add neon pillars around the scene
+    function addNeonPillars(groundSize) {
+        // Create different colored neon pillars
+        const pillarColors = [
+            0xff00ff, // Pink
+            0x00ffff, // Cyan
+            0xff8800, // Orange
+            0x00ff88  // Green
+        ];
+        
+        // Create 40 neon pillars scattered around the arena
+        for (let i = 0; i < 40; i++) {
+            // Distribute evenly but with some randomness
+            const angle = (i / 40) * Math.PI * 2 + (Math.random() * 0.2 - 0.1);
+            
+            // Distance from center (keep away from center playing area)
+            const distance = 1000 + Math.random() * 1500;
+            
+            // Calculate position
+            const x = Math.sin(angle) * distance;
+            const z = Math.cos(angle) * distance;
+            
+            // Random height
+            const height = 50 + Math.random() * 150;
+            
+            // Create different shapes for variety
+            let pillarGeometry;
+            const shapeType = Math.floor(Math.random() * 3);
+            
+            if (shapeType === 0) {
+                // Rectangular pillars
+                pillarGeometry = new THREE.BoxGeometry(10, height, 10);
+            } else if (shapeType === 1) {
+                // Cylindrical pillars
+                pillarGeometry = new THREE.CylinderGeometry(5, 5, height, 8);
+            } else {
+                // Triangular prism pillars
+                pillarGeometry = new THREE.CylinderGeometry(7, 7, height, 3);
+            }
+            
+            // Pick a random color from our neon palette
+            const colorIndex = Math.floor(Math.random() * pillarColors.length);
+            const color = pillarColors[colorIndex];
+            
+            // Create material with glow effect
+            const pillarMaterial = new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.8,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            // Create the pillar
+            const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
+            pillar.position.set(x, height / 2, z);
+            pillar.rotation.y = Math.random() * Math.PI; // Random rotation
+            
+            // Add a point light at the top for glow effect
+            const light = new THREE.PointLight(color, 0.7, 200);
+            light.position.y = height / 2 + 10;
+            pillar.add(light);
+            
+            scene.add(pillar);
+        }
+    }
+    
+    function createObstacles() {
+        // Create destructible obstacles
+        destructibleObstacles = [];
+        
+        // Create reusable materials for obstacles with synthwave styling
+        const boxMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff33cc,
+            shininess: 90,
+            emissive: 0x550055,
+            emissiveIntensity: 0.4,
+            specular: 0xffffff
+        });
+        
+        // Reusable piece material with glow effect
+        const pieceMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff33cc,
+            shininess: 100, 
+            emissive: 0xff00ff,
+            emissiveIntensity: 0.7,
+            transparent: true,
+            opacity: 1
+        });
+        
+        // All ramps and jump sequence have been removed
+        
+        // Add neon-styled blocks to bounce off of with synthwave aesthetics
+        const blockPositions = [
+            // Original blocks scaled up
+            [1500, 1200], [-1500, 1500], [1800, -1800], [-2000, -1500],
+            // Additional blocks for larger arena
+            [800, 800], [-800, 800], [800, -800], [-800, -800],
+            [0, 1000], [1000, 0], [0, -1000], [-1000, 0],
+            // Some random blocks
+            [Math.random() * 2000 - 1000, Math.random() * 2000 - 1000],
+            [Math.random() * 2000 - 1000, Math.random() * 2000 - 1000],
+            [Math.random() * 2000 - 1000, Math.random() * 2000 - 1000],
+            [Math.random() * 2000 - 1000, Math.random() * 2000 - 1000]
+        ];
+        
+        // Create neon color palette for blocks
+        const neonColors = [
+            { main: 0x00ffff, trim: 0xff00ff, emissive: 0x004444 }, // Cyan with pink trim
+            { main: 0xff00ff, trim: 0x00ffff, emissive: 0x440044 }, // Pink with cyan trim
+            { main: 0xffff00, trim: 0x00ffff, emissive: 0x444400 }, // Yellow with cyan trim
+            { main: 0x00ff88, trim: 0xff00ff, emissive: 0x004433 }  // Green with pink trim
+        ];
+        
+        const blockHeight = 80; // 20% smaller than before
+        
+        blockPositions.forEach(pos => {
+            const blockSize = 80 + Math.random() * 120; // 20% smaller blocks
+            
+            // Select a random color scheme
+            const colorScheme = neonColors[Math.floor(Math.random() * neonColors.length)];
+            
+            // Create synthwave block material with glow
+            const blockMaterial = new THREE.MeshPhongMaterial({ 
+                color: colorScheme.main,
+                shininess: 100,
+                emissive: colorScheme.emissive,
+                emissiveIntensity: 0.6
+            });
+            
+            // Create the block with random shape
+            let blockGeometry;
+            const shape = Math.floor(Math.random() * 4);
+            
+            if (shape === 0) {
+                // Cube
+                blockGeometry = new THREE.BoxGeometry(blockSize, blockHeight, blockSize);
+            } else if (shape === 1) {
+                // Cylinder
+                blockGeometry = new THREE.CylinderGeometry(blockSize/2, blockSize/2, blockHeight, 8);
+            } else if (shape === 2) {
+                // Triangular prism
+                blockGeometry = new THREE.CylinderGeometry(blockSize/2, blockSize/2, blockHeight, 3);
+            } else {
+                // Beveled cube (with slightly rounded edges)
+                blockGeometry = new THREE.BoxGeometry(blockSize, blockHeight, blockSize, 2, 2, 2);
+                // Apply some noise to the vertices for a more interesting shape
+                const positionAttr = blockGeometry.attributes.position;
+                for (let i = 0; i < positionAttr.count; i++) {
+                    // Don't modify the top/bottom face centers
+                    if (Math.abs(positionAttr.getY(i)) !== blockHeight/2) {
+                        positionAttr.setX(i, positionAttr.getX(i) + (Math.random() - 0.5) * 5);
+                        positionAttr.setZ(i, positionAttr.getZ(i) + (Math.random() - 0.5) * 5);
+                    }
+                }
+                blockGeometry.computeVertexNormals();
+            }
+            
+            const block = new THREE.Mesh(blockGeometry, blockMaterial);
+            block.position.set(pos[0], blockHeight/2, pos[1]);
+            block.rotation.y = Math.random() * Math.PI * 2; // Random rotation
+            scene.add(block);
+            
+            // Add multiple neon trims for a more complex look
+            // Top trim
+            const topTrimGeometry = new THREE.BoxGeometry(blockSize * 1.05, 2, blockSize * 1.05);
+            const trimMaterial = new THREE.MeshBasicMaterial({ 
+                color: colorScheme.trim,
+                transparent: true,
+                opacity: 0.9
+            });
+            const topTrim = new THREE.Mesh(topTrimGeometry, trimMaterial);
+            topTrim.position.y = blockHeight/2 + 1;
+            block.add(topTrim);
+            
+            // Middle trim
+            const middleTrimGeometry = new THREE.BoxGeometry(blockSize * 1.02, 1, blockSize * 1.02);
+            const middleTrim = new THREE.Mesh(middleTrimGeometry, trimMaterial);
+            middleTrim.position.y = 0;
+            block.add(middleTrim);
+            
+            // Bottom trim
+            const bottomTrim = new THREE.Mesh(topTrimGeometry, trimMaterial);
+            bottomTrim.position.y = -blockHeight/2 - 1;
+            block.add(bottomTrim);
+            
+            // Add a point light on top for glow effect
+            const light = new THREE.PointLight(colorScheme.main, 0.6, 150);
+            light.position.y = blockHeight/2 + 10;
+            block.add(light);
+            
+            groundMeshes.push(block);
+        });
+        
+        // Reusable geometries for pieces
+        const pieceGeometries = [];
+        for (let s = 0; s < 5; s++) { // Different sizes
+            pieceGeometries.push(new THREE.BoxGeometry(s+1, s+1, s+1));
+        }
+        
+        // Create neon destructible obstacles with synthwave styling
+        // Use more varied colors for the smaller obstacles
+        const smallObstacleColors = [
+            { main: 0xff00ff, emissive: 0x550055 }, // Pink
+            { main: 0x00ffff, emissive: 0x005555 }, // Cyan
+            { main: 0xffff00, emissive: 0x555500 }, // Yellow
+            { main: 0xff5500, emissive: 0x552200 }, // Orange
+            { main: 0x00ff88, emissive: 0x005533 }  // Green
+        ];
+        
+        // Create destructible obstacles - many more for the larger arena
+        for (let i = 0; i < 200; i++) { // Many more obstacles
+            const size = 8 + Math.random() * 16; // 20% smaller obstacles
+            const x = (Math.random() - 0.5) * 4000; // Spread across larger area
+            const z = (Math.random() - 0.5) * 4000; // Spread across larger area
+            
+            if (Math.abs(x) > 200 || Math.abs(z) > 200) { // Don't place too close to spawn
+                // Create a group to hold the obstacle pieces
+                const obstacleGroup = new THREE.Group();
+                obstacleGroup.position.set(x, size/2, z);
+                
+                // Pick a random color for this obstacle
+                const colorScheme = smallObstacleColors[Math.floor(Math.random() * smallObstacleColors.length)];
+                
+                // Create custom neon material
+                const customBoxMaterial = new THREE.MeshPhongMaterial({
+                    color: colorScheme.main,
+                    shininess: 100,
+                    emissive: colorScheme.emissive,
+                    emissiveIntensity: 0.7,
+                    specular: 0xffffff
+                });
+                
+                // Custom piece material with more glow
+                const customPieceMaterial = new THREE.MeshPhongMaterial({
+                    color: colorScheme.main,
+                    shininess: 120,
+                    emissive: colorScheme.main,
+                    emissiveIntensity: 0.9,
+                    transparent: true,
+                    opacity: 1
+                });
+                
+                // Choose random shape for visual variety
+                let boxGeometry;
+                const shape = Math.floor(Math.random() * 5);
+                
+                if (shape === 0) {
+                    // Cube
+                    boxGeometry = new THREE.BoxGeometry(size, size, size);
+                } else if (shape === 1) {
+                    // Sphere
+                    boxGeometry = new THREE.SphereGeometry(size/2, 12, 12);
+                } else if (shape === 2) {
+                    // Cylinder
+                    boxGeometry = new THREE.CylinderGeometry(size/2, size/2, size, 8);
+                } else if (shape === 3) {
+                    // Cone
+                    boxGeometry = new THREE.ConeGeometry(size/2, size, 8);
+                } else {
+                    // Dodecahedron (12-sided polyhedron)
+                    boxGeometry = new THREE.DodecahedronGeometry(size/2);
+                }
+                
+                // Create the main object
+                const box = new THREE.Mesh(boxGeometry, customBoxMaterial);
+                box.rotation.set(
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2
+                ); // Random rotation for visual interest
+                obstacleGroup.add(box);
+                
+                // Add a subtle pulsing light to the obstacle
+                const light = new THREE.PointLight(colorScheme.main, 0.5, size * 3);
+                light.position.set(0, 0, 0);
+                // Randomize the light animation phase
+                light.userData = { 
+                    phase: Math.random() * Math.PI * 2,
+                    intensity: 0.5,
+                    pulsate: true
+                };
+                obstacleGroup.add(light);
+                
+                // Store box pieces for explosion
+                const pieces = [];
+                const pieceSize = size / 2;
+                
+                // Create more pieces for explosion (6-8 pieces instead of 4)
+                const numPieces = 6 + Math.floor(Math.random() * 3);
+                for (let p = 0; p < numPieces; p++) {
+                    // Get random directions
+                    const px = Math.random() > 0.5 ? 1 : -1;
+                    const py = Math.random() > 0.5 ? 1 : -1;
+                    const pz = Math.random() > 0.5 ? 1 : -1;
+                    
+                    // Use a cached geometry
+                    const pieceGeometryIndex = Math.min(4, Math.floor(pieceSize)) - 1;
+                    
+                    // Create piece with a random shape
+                    let pieceGeometry;
+                    if (Math.random() > 0.5) {
+                        // Use standard geometry
+                        pieceGeometry = pieceGeometries[pieceGeometryIndex >= 0 ? pieceGeometryIndex : 0];
+                    } else {
+                        // Use specialized shape
+                        const pieceShape = Math.floor(Math.random() * 3);
+                        if (pieceShape === 0) {
+                            pieceGeometry = new THREE.TetrahedronGeometry(pieceSize/2); // Tetrahedron
+                        } else if (pieceShape === 1) {
+                            pieceGeometry = new THREE.OctahedronGeometry(pieceSize/2); // Octahedron
+                        } else {
+                            pieceGeometry = new THREE.IcosahedronGeometry(pieceSize/2); // Icosahedron
+                        }
+                    }
+                    
+                    const piece = new THREE.Mesh(pieceGeometry, customPieceMaterial.clone());
+                    
+                    piece.position.set(
+                        px * pieceSize / 2,
+                        py * pieceSize / 2,
+                        pz * pieceSize / 2
+                    );
+                    piece.visible = false; // Hidden initially
+                    obstacleGroup.add(piece);
+                    
+                    // Add a tiny light to each piece for the explosion effect
+                    const pieceLight = new THREE.PointLight(colorScheme.main, 0.8, pieceSize * 4);
+                    pieceLight.visible = false;
+                    piece.add(pieceLight);
+                    
+                    pieces.push({
+                        mesh: piece,
+                        light: pieceLight,
+                        direction: new THREE.Vector3(px, py, pz),
+                        rotationAxis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize(),
+                        rotationSpeed: Math.random() * 0.3
+                    });
+                }
+                
+                scene.add(obstacleGroup);
+                
+                // Store obstacle data for collision detection
+                destructibleObstacles.push({
+                    group: obstacleGroup,
+                    mainBox: box,
+                    light: light,
+                    pieces: pieces,
+                    size: size,
+                    color: colorScheme.main,
+                    exploding: false,
+                    explosionTime: 0,
+                    explosionDuration: 45 // Longer animation time for more dramatic effect
+                });
+            }
+        }
+    }
+    
+    function createBoundary() {
+        // Create a boundary around the MASSIVE game field
+        const boundarySize = 4500; // 10x larger
+        const wallHeight = 80; // Higher walls for the bigger arena
+        const wallThickness = 20; // Thicker walls
+        
+        // Define the boundary material with synthwave glow
+        const boundaryMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff00ff,
+            transparent: true,
+            opacity: 0.4,
+            emissive: 0xff00ff,
+            emissiveIntensity: 0.3,
+            shininess: 100
+        });
+        
+        // Create synthwave grid texture for walls
+        const wallTexture = createWallGridTexture();
+        
+        // Create each wall segment
+        const walls = [
+            { pos: [0, wallHeight/2, -boundarySize/2], size: [boundarySize, wallHeight, wallThickness], rotation: [0, 0, 0] },
+            { pos: [0, wallHeight/2, boundarySize/2], size: [boundarySize, wallHeight, wallThickness], rotation: [0, Math.PI, 0] },
+            { pos: [boundarySize/2, wallHeight/2, 0], size: [wallThickness, wallHeight, boundarySize], rotation: [0, Math.PI/2, 0] },
+            { pos: [-boundarySize/2, wallHeight/2, 0], size: [wallThickness, wallHeight, boundarySize], rotation: [0, -Math.PI/2, 0] }
+        ];
+        
+        // Create all walls
+        walls.forEach(wall => {
+            // Create material with wall texture
+            const wallMaterial = new THREE.MeshPhongMaterial({ 
+                map: wallTexture,
+                transparent: true,
+                opacity: 0.7,
+                emissive: 0x550055,
+                emissiveMap: wallTexture,
+                emissiveIntensity: 0.5,
+                shininess: 100
+            });
+            
+            const geometry = new THREE.BoxGeometry(wall.size[0], wall.size[1], wall.size[2]);
+            const mesh = new THREE.Mesh(geometry, wallMaterial);
+            mesh.position.set(wall.pos[0], wall.pos[1], wall.pos[2]);
+            mesh.rotation.set(wall.rotation[0], wall.rotation[1], wall.rotation[2]);
+            scene.add(mesh);
+            groundMeshes.push(mesh);
+            
+            // Add glowing cyan edge at the top of each wall
+            const edgeGeometry = new THREE.BoxGeometry(wall.size[0] + 5, 5, wall.size[2] + 5);
+            const edgeMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.9
+            });
+            const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+            edge.position.set(wall.pos[0], wallHeight + 2.5, wall.pos[2]);
+            edge.rotation.set(wall.rotation[0], wall.rotation[1], wall.rotation[2]);
+            scene.add(edge);
+            
+            // Add pink glowing edge at the middle of each wall
+            const middleEdgeGeometry = new THREE.BoxGeometry(wall.size[0] + 2, 3, wall.size[2] + 2);
+            const middleEdgeMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xff00ff,
+                transparent: true,
+                opacity: 0.7
+            });
+            const middleEdge = new THREE.Mesh(middleEdgeGeometry, middleEdgeMaterial);
+            middleEdge.position.set(wall.pos[0], wallHeight/2, wall.pos[2]);
+            middleEdge.rotation.set(wall.rotation[0], wall.rotation[1], wall.rotation[2]);
+            scene.add(middleEdge);
+        });
+        
+        // Add dramatic neon-style stadium lighting
+        const spotlightColors = [0xff00ff, 0x00ffff, 0xff8800, 0x00ff88];
+        
+        // Add spotlights at the corners
+        const corners = [
+            [boundarySize/2 - 200, wallHeight * 3, boundarySize/2 - 200],
+            [-boundarySize/2 + 200, wallHeight * 3, boundarySize/2 - 200],
+            [boundarySize/2 - 200, wallHeight * 3, -boundarySize/2 + 200],
+            [-boundarySize/2 + 200, wallHeight * 3, -boundarySize/2 + 200]
+        ];
+        
+        corners.forEach((pos, index) => {
+            const spotlight = new THREE.SpotLight(
+                spotlightColors[index % spotlightColors.length], 
+                1.5,  // Higher intensity
+                1200, // Longer range
+                Math.PI/6, // Narrower angle
+                0.4,  // More defined edge
+                1.5   // Higher penumbra for softer edges
+            );
+            spotlight.position.set(pos[0], pos[1], pos[2]);
+            spotlight.target.position.set(0, 0, 0);
+            scene.add(spotlight);
+            scene.add(spotlight.target);
+            
+            // Add a helper light to illuminate the surroundings
+            const ambientCornerLight = new THREE.PointLight(
+                spotlightColors[index % spotlightColors.length],
+                0.5, // Medium intensity
+                400  // Medium range
+            );
+            ambientCornerLight.position.set(pos[0], pos[1] - 100, pos[2]);
+            scene.add(ambientCornerLight);
+        });
+        
+        // Add additional colored lights along the walls
+        for (let i = 0; i < 16; i++) {
+            // Place lights along the perimeter
+            const angle = (i / 16) * Math.PI * 2;
+            const distance = boundarySize * 0.45; // Close to walls but not at them
+            
+            const x = Math.sin(angle) * distance;
+            const z = Math.cos(angle) * distance;
+            
+            // Create a colored point light
+            const pointLight = new THREE.PointLight(
+                spotlightColors[i % spotlightColors.length],
+                0.7, // Medium intensity
+                300  // Moderate range
+            );
+            pointLight.position.set(x, 30, z);
+            scene.add(pointLight);
+        }
+    }
+    
+    // Create a synthwave grid texture for walls
+    function createWallGridTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 1024;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Fill with gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#330033');
+        gradient.addColorStop(1, '#110011');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw horizontal lines
+        const horizontalLines = 30;
+        const spacing = canvas.height / horizontalLines;
+        
+        for (let i = 0; i < horizontalLines; i++) {
+            const y = i * spacing;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            
+            // Alternate cyan and pink lines
+            if (i % 2 === 0) {
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.7)';
+            } else {
+                ctx.strokeStyle = 'rgba(255, 0, 255, 0.7)';
+            }
+            
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Draw vertical lines with perspective effect
+        const verticalLines = 20;
+        const verticalSpacing = canvas.width / verticalLines;
+        
+        for (let i = 0; i < verticalLines; i++) {
+            const x = i * verticalSpacing;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            
+            // Use yellow for vertical lines to add color variety
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        
+        // Add some diagonal lines for interest
+        ctx.lineWidth = 1;
+        for (let i = -10; i < 10; i++) {
+            const offset = i * 100;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height/2 + offset);
+            ctx.lineTo(canvas.width, canvas.height/2 - offset);
+            
+            ctx.strokeStyle = 'rgba(255, 100, 0, 0.3)';
+            ctx.stroke();
+        }
+        
+        // Create some gradient "scanlines" effect
+        for (let i = 0; i < canvas.height; i += 4) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(canvas.width, i);
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(2, 1);
+        
+        return texture;
+    }
+    
+    function createTruck(truckType = 'neonCrusher') {
+        // Create a monster truck with selected type
+        truck = new THREE.Group();
+        
+        // Use the selected truck color or default to pink
+        const truckColorValue = new THREE.Color(selectedColor);
+        
+        // Scale factor for making trucks 50% bigger (multiply by 1.5)
+        const scale = 1.5;
+        
+        // Common parts for all truck types
+        function createCommonParts() {
+            // Add gun to the truck - now 1.5x larger
+            const gunBaseGeometry = new THREE.BoxGeometry(3.6 * scale, 1.2 * scale, 3.6 * scale);
+            const gunBaseMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x666666, 
+                shininess: 100,
+                specular: 0xffffff
+            });
+            const gunBase = new THREE.Mesh(gunBaseGeometry, gunBaseMaterial);
+            gunBase.position.set(0, 5.28 * scale, -2.4 * scale);
+            truck.add(gunBase);
+            
+            // Add gun barrel - now 1.5x larger
+            const gunBarrelGeometry = new THREE.CylinderGeometry(0.72 * scale, 0.72 * scale, 8.64 * scale, 8);
+            const gunBarrelMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x444444, 
+                shininess: 100,
+                specular: 0xffffff
+            });
+            const gunBarrel = new THREE.Mesh(gunBarrelGeometry, gunBarrelMaterial);
+            gunBarrel.rotation.x = -Math.PI / 2; // Point forward
+            gunBarrel.position.set(0, 0, -3.6 * scale);
+            gunBase.add(gunBarrel);
+            
+            // Add neon decoration to gun - colored with the player's color
+            const gunTrimGeometry = new THREE.RingGeometry(0.96 * scale, 1.2 * scale, 16);
+            const gunTrimMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                side: THREE.DoubleSide,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.5
+            });
+            const gunTrim = new THREE.Mesh(gunTrimGeometry, gunTrimMaterial);
+            gunTrim.rotation.y = Math.PI / 2;
+            gunTrim.position.set(0, 0, -8.3 * scale);
+            gunBarrel.add(gunTrim);
+            
+            // Add fancy neon underglow with player's color
+            const glowGeometry = new THREE.PlaneGeometry(12 * scale, 22 * scale);
+            const glowMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue, 
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.DoubleSide
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.rotation.x = Math.PI / 2;
+            glow.position.y = -0.5 * scale;
+            truck.add(glow);
+        }
+        
+        // Get the truck configuration
+        const truckConfig = TRUCK_TYPES[truckType] || TRUCK_TYPES.neonCrusher;
+        
+        // Different truck types
+        if (truckType === 'laserWheel') {
+            // LASER WHEEL - heavy armor, lower speed
+            
+            // Chunky chassis with imposing design
+            const chassisGeometry = new THREE.BoxGeometry(12 * scale, 3 * scale, 20 * scale);
+            const chassisMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 80,
+                specular: 0xffffff,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.2
+            });
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 1.5 * scale; // Higher off ground
+            truck.add(chassis);
+            
+            // Add neon trim to chassis
+            const trimGeometry = new THREE.BoxGeometry(12.2 * scale, 0.3 * scale, 20.2 * scale);
+            const trimMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                transparent: true,
+                opacity: 0.8
+            });
+            const trim = new THREE.Mesh(trimGeometry, trimMaterial);
+            trim.position.y = 3.2 * scale; 
+            truck.add(trim);
+            
+            // Heavy armor plating on sides
+            const armorGeometry = new THREE.BoxGeometry(0.8 * scale, 2 * scale, 18 * scale);
+            const armorMaterial = new THREE.MeshPhongMaterial({
+                color: 0x555555,
+                shininess: 30,
+                specular: 0x333333
+            });
+            
+            // Left armor plate
+            const leftArmor = new THREE.Mesh(armorGeometry, armorMaterial);
+            leftArmor.position.set(-6 * scale, 2 * scale, 0);
+            truck.add(leftArmor);
+            
+            // Right armor plate
+            const rightArmor = new THREE.Mesh(armorGeometry, armorMaterial);
+            rightArmor.position.set(6 * scale, 2 * scale, 0);
+            truck.add(rightArmor);
+            
+            // Bulky armored cab
+            const cabGeometry = new THREE.BoxGeometry(10 * scale, 4 * scale, 8 * scale);
+            const cabMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 90,
+                specular: 0xffffff,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.2
+            });
+            const cab = new THREE.Mesh(cabGeometry, cabMaterial);
+            cab.position.set(0, 4 * scale, -5 * scale);
+            truck.add(cab);
+            
+            // Reinforced windshield
+            const windshieldGeometry = new THREE.PlaneGeometry(8 * scale, 2.5 * scale);
+            const windshieldMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                transparent: true,
+                opacity: 0.4,
+                side: THREE.DoubleSide
+            });
+            const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
+            windshield.position.set(0, 4.5 * scale, -8 * scale);
+            windshield.rotation.x = 0.3;
+            truck.add(windshield);
+            
+            // Powerful headlights
+            const headlightGeometry = new THREE.SphereGeometry(1.2 * scale, 16, 16);
+            const headlightMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff,
+                emissive: 0xffffff,
+                emissiveIntensity: 0.5
+            });
+            
+            // Left headlight
+            const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            leftHeadlight.position.set(-3.5 * scale, 2.5 * scale, -10 * scale);
+            truck.add(leftHeadlight);
+            
+            // Right headlight
+            const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            rightHeadlight.position.set(3.5 * scale, 2.5 * scale, -10 * scale);
+            truck.add(rightHeadlight);
+            
+            // Armor shield on front
+            const shieldGeometry = new THREE.BoxGeometry(8 * scale, 1.5 * scale, 0.5 * scale);
+            const shieldMaterial = new THREE.MeshPhongMaterial({
+                color: 0x777777,
+                shininess: 30
+            });
+            const shield = new THREE.Mesh(shieldGeometry, shieldMaterial);
+            shield.position.set(0, 1.5 * scale, -10 * scale);
+            truck.add(shield);
+            
+            // Create heavy wheels with neon rims
+            const wheelRadius = 4 * scale;
+            const wheelWidth = 2.8 * scale;
+            const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 24);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x222222,
+                shininess: 30
+            });
+            
+            // Wheel neon rim material
+            const rimGeometry = new THREE.TorusGeometry(wheelRadius * 0.9, 0.3 * scale, 16, 32);
+            const rimMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.8
+            });
+            
+            // Store wheel references
+            truck.userData = {
+                wheels: [],
+                truckType: truckType,
+                truckConfig: truckConfig
+            };
+            
+            const wheelPositions = [
+                {x: -5.8 * scale, y: wheelRadius, z: -6.5 * scale, steering: true},
+                {x: 5.8 * scale, y: wheelRadius, z: -6.5 * scale, steering: true},
+                {x: -5.8 * scale, y: wheelRadius, z: 7 * scale, steering: false},
+                {x: 5.8 * scale, y: wheelRadius, z: 7 * scale, steering: false}
+            ];
+            
+            wheelPositions.forEach(pos => {
+                // Create wheel group
+                const wheelGroup = new THREE.Group();
+                wheelGroup.position.set(pos.x, pos.y, pos.z);
+                
+                // Create wheel mesh
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                wheelGroup.add(wheel);
+                
+                // Add neon rim
+                const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+                rim.rotation.x = Math.PI / 2;
+                wheelGroup.add(rim);
+                
+                // Add wheel group to truck
+                truck.add(wheelGroup);
+                
+                // Store wheel reference
+                truck.userData.wheels.push({
+                    group: wheelGroup,
+                    mesh: wheel,
+                    rim: rim,
+                    steering: pos.steering,
+                    rotation: 0
+                });
+            });
+            
+            // Add armor pikes on top
+            const pikeGeometry = new THREE.ConeGeometry(0.5 * scale, 2 * scale, 4);
+            const pikeMaterial = new THREE.MeshPhongMaterial({
+                color: 0x888888,
+                shininess: 80
+            });
+            
+            for (let i = 0; i < 5; i++) {
+                const pike = new THREE.Mesh(pikeGeometry, pikeMaterial);
+                pike.position.set((i - 2) * 2 * scale, 6 * scale, 0);
+                pike.rotation.x = Math.PI / 2;
+                truck.add(pike);
+            }
+            
+        } else if (truckType === 'gridRipper') {
+            // GRID RIPPER - high speed, low armor
+            
+            // Sleek, aerodynamic chassis
+            const chassisGeometry = new THREE.BoxGeometry(8.5 * scale, 1.6 * scale, 24 * scale);
+            const chassisMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 100,
+                specular: 0xffffff,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.2
+            });
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 0.9 * scale; // Lower to ground
+            truck.add(chassis);
+            
+            // Add aerodynamic shape to front
+            const noseGeometry = new THREE.ConeGeometry(4 * scale, 6 * scale, 4);
+            noseGeometry.rotateX(-Math.PI / 2);
+            const noseMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 100,
+                specular: 0xffffff
+            });
+            const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+            nose.position.set(0, 1.2 * scale, -12 * scale);
+            nose.scale.set(1, 0.5, 1); // Flatten
+            truck.add(nose);
+            
+            // Add neon trim to chassis
+            const trimGeometry = new THREE.BoxGeometry(8.7 * scale, 0.15 * scale, 24.2 * scale);
+            const trimMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.8
+            });
+            const trim = new THREE.Mesh(trimGeometry, trimMaterial);
+            trim.position.y = 1.8 * scale;
+            truck.add(trim);
+            
+            // Streamlined aerodynamic cab
+            const cabGeometry = new THREE.BoxGeometry(7 * scale, 2 * scale, 5 * scale);
+            const cabMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 100,
+                specular: 0xffffff,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.2
+            });
+            const cab = new THREE.Mesh(cabGeometry, cabMaterial);
+            cab.position.set(0, 2.5 * scale, -7 * scale);
+            truck.add(cab);
+            
+            // Very angled windshield
+            const windshieldGeometry = new THREE.PlaneGeometry(6.8 * scale, 2 * scale);
+            const windshieldMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.DoubleSide
+            });
+            const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
+            windshield.position.set(0, 3 * scale, -8.5 * scale);
+            windshield.rotation.x = 0.7; // More angled
+            truck.add(windshield);
+            
+            // Sleek headlights
+            const headlightGeometry = new THREE.SphereGeometry(0.6 * scale, 16, 16);
+            const headlightMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff,
+                emissive: 0xffffff
+            });
+            
+            // Left headlight
+            const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            leftHeadlight.position.set(-2.5 * scale, 1.2 * scale, -11.8 * scale);
+            truck.add(leftHeadlight);
+            
+            // Right headlight
+            const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            rightHeadlight.position.set(2.5 * scale, 1.2 * scale, -11.8 * scale);
+            truck.add(rightHeadlight);
+            
+            // Add aerodynamic fins
+            const finGeometry = new THREE.BoxGeometry(0.2 * scale, 1.2 * scale, 4 * scale);
+            const finMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 90
+            });
+            
+            // Left fin
+            const leftFin = new THREE.Mesh(finGeometry, finMaterial);
+            leftFin.position.set(-4.2 * scale, 1.5 * scale, 5 * scale);
+            truck.add(leftFin);
+            
+            // Right fin
+            const rightFin = new THREE.Mesh(finGeometry, finMaterial);
+            rightFin.position.set(4.2 * scale, 1.5 * scale, 5 * scale);
+            truck.add(rightFin);
+            
+            // Add spoiler
+            const spoilerBaseGeometry = new THREE.BoxGeometry(7 * scale, 0.2 * scale, 1 * scale);
+            const spoilerBaseMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 90
+            });
+            const spoilerBase = new THREE.Mesh(spoilerBaseGeometry, spoilerBaseMaterial);
+            spoilerBase.position.set(0, 2.5 * scale, 11.5 * scale);
+            truck.add(spoilerBase);
+            
+            // Spoiler fin
+            const spoilerFinGeometry = new THREE.BoxGeometry(7 * scale, 1.5 * scale, 0.2 * scale);
+            const spoilerFin = new THREE.Mesh(spoilerFinGeometry, spoilerBaseMaterial);
+            spoilerFin.position.set(0, 0.8 * scale, 0);
+            spoilerBase.add(spoilerFin);
+            
+            // Add spoiler endcaps with neon
+            const endcapGeometry = new THREE.BoxGeometry(0.3 * scale, 1.5 * scale, 1 * scale);
+            const endcapMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.7
+            });
+            
+            // Left endcap
+            const leftEndcap = new THREE.Mesh(endcapGeometry, endcapMaterial);
+            leftEndcap.position.set(-3.5 * scale, 0.8 * scale, 0);
+            spoilerBase.add(leftEndcap);
+            
+            // Right endcap
+            const rightEndcap = new THREE.Mesh(endcapGeometry, endcapMaterial);
+            rightEndcap.position.set(3.5 * scale, 0.8 * scale, 0);
+            spoilerBase.add(rightEndcap);
+            
+            // Racing wheels - smaller, thinner, more sporty
+            const wheelRadius = 2.3 * scale;
+            const wheelWidth = 1.5 * scale;
+            const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 24);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x111111,
+                shininess: 80
+            });
+            
+            // Create neon rim
+            const rimGeometry = new THREE.RingGeometry(wheelRadius * 0.6, wheelRadius * 0.8, 16);
+            const rimMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                side: THREE.DoubleSide,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.7
+            });
+            
+            // Store wheel references
+            truck.userData = {
+                wheels: [],
+                truckType: truckType,
+                truckConfig: truckConfig
+            };
+            
+            const wheelPositions = [
+                {x: -3.8 * scale, y: wheelRadius, z: -8.5 * scale, steering: true},
+                {x: 3.8 * scale, y: wheelRadius, z: -8.5 * scale, steering: true},
+                {x: -3.8 * scale, y: wheelRadius, z: 8.5 * scale, steering: false},
+                {x: 3.8 * scale, y: wheelRadius, z: 8.5 * scale, steering: false}
+            ];
+            
+            wheelPositions.forEach(pos => {
+                // Create wheel group
+                const wheelGroup = new THREE.Group();
+                wheelGroup.position.set(pos.x, pos.y, pos.z);
+                
+                // Create wheel mesh
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                wheelGroup.add(wheel);
+                
+                // Add rims
+                const rim1 = new THREE.Mesh(rimGeometry, rimMaterial);
+                rim1.rotation.y = Math.PI / 2;
+                rim1.position.set(wheelWidth/2 + 0.1, 0, 0);
+                wheelGroup.add(rim1);
+                
+                const rim2 = new THREE.Mesh(rimGeometry, rimMaterial);
+                rim2.rotation.y = Math.PI / 2;
+                rim2.position.set(-wheelWidth/2 - 0.1, 0, 0);
+                wheelGroup.add(rim2);
+                
+                // Add wheel group to truck
+                truck.add(wheelGroup);
+                
+                // Store wheel reference
+                truck.userData.wheels.push({
+                    group: wheelGroup,
+                    mesh: wheel,
+                    steering: pos.steering,
+                    rotation: 0
+                });
+            });
+            
+            // Add neon trails
+            const trailGeometry = new THREE.PlaneGeometry(0.5 * scale, 8 * scale);
+            const trailMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            
+            // Left trail
+            const leftTrail = new THREE.Mesh(trailGeometry, trailMaterial);
+            leftTrail.position.set(-3.8 * scale, 1 * scale, 12 * scale);
+            leftTrail.rotation.set(0, 0, 0);
+            truck.add(leftTrail);
+            
+            // Right trail
+            const rightTrail = new THREE.Mesh(trailGeometry, trailMaterial);
+            rightTrail.position.set(3.8 * scale, 1 * scale, 12 * scale);
+            rightTrail.rotation.set(0, 0, 0);
+            truck.add(rightTrail);
+            
+        } else {
+            // NEON CRUSHER (default) - balanced performance
+            
+            // Chassis with balanced design
+            const chassisGeometry = new THREE.BoxGeometry(10 * scale, 2.2 * scale, 19 * scale);
+            const chassisMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 90,
+                specular: 0xffffff,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.15
+            });
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 1.1 * scale;
+            truck.add(chassis);
+            
+            // Add neon trim with the player's color
+            const trimGeometry = new THREE.BoxGeometry(10.2 * scale, 0.2 * scale, 19.2 * scale);
+            const trimMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.8
+            });
+            const trim = new THREE.Mesh(trimGeometry, trimMaterial);
+            trim.position.y = 2.3 * scale;
+            truck.add(trim);
+            
+            // Driver's cab
+            const cabGeometry = new THREE.BoxGeometry(9 * scale, 3 * scale, 7 * scale);
+            const cabMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 90,
+                specular: 0xffffff,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.15
+            });
+            const cab = new THREE.Mesh(cabGeometry, cabMaterial);
+            cab.position.set(0, 3.2 * scale, -5 * scale);
+            truck.add(cab);
+            
+            // Windshield
+            const windshieldGeometry = new THREE.PlaneGeometry(8 * scale, 2.5 * scale);
+            const windshieldMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.DoubleSide
+            });
+            const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
+            windshield.position.set(0, 3.8 * scale, -7.5 * scale);
+            windshield.rotation.x = 0.3;
+            truck.add(windshield);
+            
+            // Add headlights
+            const headlightGeometry = new THREE.SphereGeometry(0.8 * scale, 16, 16);
+            const headlightMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff,
+                emissive: 0xffffff
+            });
+            
+            // Left headlight
+            const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            leftHeadlight.position.set(-3.5 * scale, 1.5 * scale, -9.5 * scale);
+            truck.add(leftHeadlight);
+            
+            // Right headlight
+            const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            rightHeadlight.position.set(3.5 * scale, 1.5 * scale, -9.5 * scale);
+            truck.add(rightHeadlight);
+            
+            // Add small spoiler
+            const spoilerGeometry = new THREE.BoxGeometry(6 * scale, 1.5 * scale, 0.3 * scale);
+            const spoilerMaterial = new THREE.MeshPhongMaterial({ 
+                color: truckColorValue,
+                shininess: 90
+            });
+            const spoiler = new THREE.Mesh(spoilerGeometry, spoilerMaterial);
+            spoiler.position.set(0, 3 * scale, 9 * scale);
+            truck.add(spoiler);
+            
+            // Create wheels
+            const wheelRadius = 3 * scale;
+            const wheelWidth = 2 * scale;
+            const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 24);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x222222,
+                shininess: 50
+            });
+            
+            // Create spokes for wheels
+            const spokeGeometry = new THREE.BoxGeometry(wheelRadius * 1.8, 0.2 * scale, 0.2 * scale);
+            const spokeMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xdddddd,
+                shininess: 100,
+                specular: 0xffffff
+            });
+            
+            // Store wheel references
+            truck.userData = {
+                wheels: [],
+                truckType: truckType,
+                truckConfig: truckConfig
+            };
+            
+            const wheelPositions = [
+                {x: -4.8 * scale, y: wheelRadius, z: -7 * scale, steering: true},
+                {x: 4.8 * scale, y: wheelRadius, z: -7 * scale, steering: true},
+                {x: -4.8 * scale, y: wheelRadius, z: 7 * scale, steering: false},
+                {x: 4.8 * scale, y: wheelRadius, z: 7 * scale, steering: false}
+            ];
+            
+            wheelPositions.forEach(pos => {
+                // Create wheel group
+                const wheelGroup = new THREE.Group();
+                wheelGroup.position.set(pos.x, pos.y, pos.z);
+                
+                // Create wheel mesh
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                wheelGroup.add(wheel);
+                
+                // Add spokes for visual interest
+                for (let i = 0; i < 4; i++) {
+                    const spoke = new THREE.Mesh(spokeGeometry, spokeMaterial);
+                    spoke.rotation.z = (i / 4) * Math.PI;
+                    wheel.add(spoke);
+                }
+                
+                // Add a neon rim in player's color
+                const rimGeometry = new THREE.TorusGeometry(wheelRadius * 0.8, 0.15 * scale, 8, 32);
+                const rimMaterial = new THREE.MeshBasicMaterial({ 
+                    color: truckColorValue,
+                    emissive: truckColorValue,
+                    emissiveIntensity: 0.8
+                });
+                const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+                rim.rotation.x = Math.PI / 2;
+                wheelGroup.add(rim);
+                
+                // Add wheel group to truck
+                truck.add(wheelGroup);
+                
+                // Store wheel reference
+                truck.userData.wheels.push({
+                    group: wheelGroup,
+                    mesh: wheel,
+                    steering: pos.steering,
+                    rotation: 0
+                });
+            });
+            
+            // Add decorative neon tubes on sides
+            const tubeGeometry = new THREE.CylinderGeometry(0.2 * scale, 0.2 * scale, 14 * scale, 8);
+            const tubeMaterial = new THREE.MeshBasicMaterial({ 
+                color: truckColorValue,
+                emissive: truckColorValue,
+                emissiveIntensity: 0.8
+            });
+            
+            // Left tube
+            const leftTube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+            leftTube.rotation.z = Math.PI / 2;
+            leftTube.position.set(-5 * scale, 1.5 * scale, 0);
+            truck.add(leftTube);
+            
+            // Right tube
+            const rightTube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+            rightTube.rotation.z = Math.PI / 2;
+            rightTube.position.set(5 * scale, 1.5 * scale, 0);
+            truck.add(rightTube);
+        }
+        
+        // Add common parts
+        createCommonParts();
+        
+        // Set initial position
+        truck.position.set(0, 2, 0);
+        
+        // Add to scene
+        scene.add(truck);
+    }
+    
+    function onKeyDown(event) {
+        const key = event.key.toLowerCase();
+        keys[key] = true;
+        
+        // Handle shooting with spacebar
+        if (key === ' ' && !event.repeat) {
+            shootProjectile();
+        }
+    }
+    
+    function onKeyUp(event) {
+        keys[event.key.toLowerCase()] = false;
+    }
+    
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    
+    function updateTruck() {
+        // Get truck type configuration
+        const truckConfig = truck.userData.truckConfig || TRUCK_TYPES.neonCrusher;
+        
+        // Modified driving constants - adjusted based on truck type and power-ups
+        let ACCELERATION = 0.135 * (truckConfig.acceleration || 0.7);
+        let MAX_SPEED = 4.05 * (truckConfig.speed || 0.7);
+        let MAX_REVERSE_SPEED = 2.0 * (truckConfig.speed || 0.7);
+        let STEERING_SPEED = 0.1 * (truckConfig.handling || 0.7);
+        let DRIFT_FACTOR = 0.88;
+        
+        // Apply speed boost power-up if active
+        if (truck.userData.speedBoost) {
+            MAX_SPEED *= 1.5;
+            ACCELERATION *= 1.3;
+            MAX_REVERSE_SPEED *= 1.3;
+        }
+        
+        // Dynamic handling variables
+        const speedPercent = Math.min(1, Math.abs(truckSpeed) / MAX_SPEED);
+        
+        // Get current direction for drift calculations
+        const oldDirection = truckDirection;
+        
+        // Steer only when moving or very slightly when stationary
+        if (Math.abs(truckSpeed) > 0.1) {
+            // Normal steering when moving
+            const adaptiveSteering = STEERING_SPEED * (1 - speedPercent * 0.5);
+            
+            if (keys['arrowleft']) {
+                truckDirection += adaptiveSteering; // Turn left
+            }
+            if (keys['arrowright']) {
+                truckDirection -= adaptiveSteering; // Turn right
+            }
+        } else {
+            // Very subtle steering when stationary
+            if (keys['arrowleft']) {
+                truckDirection += STEERING_SPEED * 0.2; 
+            }
+            if (keys['arrowright']) {
+                truckDirection -= STEERING_SPEED * 0.2;
+            }
+        }
+        
+        // Apply rotation to truck model
+        truck.rotation.y = truckDirection;
+        
+        // Calculate movement vectors
+        const dirX = Math.sin(truckDirection);
+        const dirZ = Math.cos(truckDirection);
+        
+        // Enhanced acceleration with better responsiveness
+        if (keys['arrowup']) {
+            // Progressive acceleration - slower at start, quicker in the middle range
+            const accelFactor = 1 - (Math.pow(truckSpeed / MAX_SPEED, 2) * 0.8);
+            truckSpeed = Math.min(truckSpeed + ACCELERATION * accelFactor, MAX_SPEED);
+        } else if (keys['arrowdown']) {
+            if (truckSpeed > 0.1) {
+                // Braking when going forward - stronger braking effect
+                truckSpeed *= 0.9;
+            } else {
+                // Reverse acceleration
+                truckSpeed = Math.max(truckSpeed - ACCELERATION, -MAX_REVERSE_SPEED);
+            }
+        } else {
+            // Natural deceleration - more gradual
+            truckSpeed *= 0.98;
+            
+            // Eliminate tiny speeds
+            if (Math.abs(truckSpeed) < 0.01) {
+                truckSpeed = 0;
+            }
+        }
+        
+        // Handle drifting effect for more fun driving
+        let moveX, moveZ;
+        
+        if (Math.abs(truckSpeed) > 0.5) {
+            // At speed, allow some drift
+            const driftDirection = oldDirection;
+            
+            // Blend actual direction with drift direction
+            moveX = (dirX * truckSpeed * (1 - DRIFT_FACTOR)) + 
+                   (Math.sin(driftDirection) * truckSpeed * DRIFT_FACTOR);
+            moveZ = (dirZ * truckSpeed * (1 - DRIFT_FACTOR)) + 
+                   (Math.cos(driftDirection) * truckSpeed * DRIFT_FACTOR);
+        } else {
+            // At low speeds, no drift
+            moveX = dirX * truckSpeed;
+            moveZ = dirZ * truckSpeed;
+        }
+        
+        // Update truck position
+        truck.position.x += moveX;
+        truck.position.z += moveZ;
+        
+        // Animate wheels based on speed
+        if (truck.userData.wheels) {
+            truck.userData.wheels.forEach(wheel => {
+                if (wheel.steering) {
+                    // Visualize steering by rotating front wheels relative to truck
+                    const steeringAmount = Math.sin(truckDirection - oldDirection) * 5;
+                    const steeringDirection = keys['arrowleft'] ? 0.4 : 
+                                           keys['arrowright'] ? -0.4 : 
+                                           steeringAmount;
+                    
+                    // Apply smooth steering transition
+                    const currentSteering = wheel.group.rotation.y || 0;
+                    const newSteering = currentSteering * 0.8 + steeringDirection * 0.2;
+                    wheel.group.rotation.y = newSteering;
+                }
+                
+                // Rotate wheels based on speed
+                wheel.rotation += truckSpeed * 0.2;
+                wheel.mesh.rotation.x = wheel.rotation;
+            });
+        }
+        
+        // Handle boundary collision with wall bounce
+        const boundaryLimit = 2200; // Smaller than the actual boundary (10x scaled)
+        let hitBoundary = false;
+        
+        // Check X boundary (East/West walls)
+        if (Math.abs(truck.position.x) > boundaryLimit) {
+            hitBoundary = true;
+            
+            // Place truck at boundary limit
+            truck.position.x = Math.sign(truck.position.x) * boundaryLimit;
+        }
+        
+        // Check Z boundary (North/South walls)
+        if (Math.abs(truck.position.z) > boundaryLimit) {
+            hitBoundary = true;
+            
+            // Place truck at boundary limit
+            truck.position.z = Math.sign(truck.position.z) * boundaryLimit;
+        }
+        
+        // If hit a boundary, reverse direction and add a bounce effect
+        if (hitBoundary) {
+            // Reverse the speed (direction stays the same)
+            truckSpeed = -truckSpeed * 0.8;
+            
+            // Add a small bounce effect
+            truck.position.y += 0.4;
+            
+            // Add score for wall hit
+            score += 10;
+            document.getElementById('score').textContent = `SCORE: ${score}`;
+            
+            // Take damage based on speed
+            const wallDamage = Math.floor(Math.abs(truckSpeed) * 8);
+            takeDamage(wallDamage, "Wall collision!");
+            
+            // Play hit sound
+            SoundSystem.playHit();
+            
+            // Store bounce time
+            truck.userData.wallBounceTime = 8;
+        }
+        
+        // Check collisions with obstacles
+        destructibleObstacles.forEach((obstacle, index) => {
+            if (!obstacle.exploding) {
+                const dx = truck.position.x - obstacle.group.position.x;
+                const dz = truck.position.z - obstacle.group.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                
+                if (distance < (obstacle.size / 2 + 3)) { // 3 is approximate truck radius
+                    // Collision detected - start explosion
+                    obstacle.exploding = true;
+                    obstacle.explosionTime = 0;
+                    
+                    // Hide the main box
+                    obstacle.mainBox.visible = false;
+                    
+                    // Show the explosion pieces
+                    obstacle.pieces.forEach(piece => {
+                        piece.mesh.visible = true;
+                        piece.mesh.position.set(0, 0, 0);
+                        piece.mesh.material.opacity = 1;
+                    });
+                    
+                    // Slow down the truck slightly
+                    truckSpeed *= 0.8;
+                    
+                    // Add score
+                    score += 25;
+                    document.getElementById('score').textContent = `SCORE: ${score}`;
+                    
+                    // Add small bounce height
+                    truck.position.y += 0.3;
+                    
+                    // Play explosion sound
+                    SoundSystem.playExplosion();
+                    
+                    // Random chance to spawn power-up (30%)
+                    if (Math.random() < 0.3) {
+                        // Spawn power-up at obstacle position
+                        spawnPowerUp(
+                            obstacle.group.position.x, 
+                            obstacle.group.position.y + 5, 
+                            obstacle.group.position.z
+                        );
+                        
+                        // Create glow effect for appearance
+                        const glowGeometry = new THREE.SphereGeometry(10, 16, 16);
+                        const glowMaterial = new THREE.MeshBasicMaterial({
+                            color: 0xffffff,
+                            transparent: true,
+                            opacity: 0.8
+                        });
+                        
+                        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                        glow.position.copy(obstacle.group.position);
+                        
+                        glow.userData = {
+                            life: 20,
+                            fadeRate: 0.04
+                        };
+                        
+                        scene.add(glow);
+                        particles.push(glow);
+                    }
+                    
+                    // Send obstacle destruction to server
+                    if (isConnected && socket && clientId) {
+                        // Assign an ID to this obstacle if it doesn't have one
+                        if (!obstacle.id) {
+                            obstacle.id = 'obstacle_' + (obstacleIdCounter++);
+                        }
+                        
+                        // Notify server about the destruction
+                        socket.send(JSON.stringify({
+                            type: 'obstacleDestroyed',
+                            obstacleId: obstacle.id
+                        }));
+                        
+                        // Update score on server
+                        sendScoreUpdate();
+                    }
+                }
+            }
+        });
+        
+        // Add a smoothing factor for camera to prevent jerkiness
+        if (typeof cameraSmoothingFactor === 'undefined') {
+            cameraSmoothingFactor = 0.1; // Default smooth camera
+        }
+
+        // Handle bounce oscillation effect if active
+        if (truck.userData.wallBounceTime > 0) {
+            truck.position.y += Math.sin(truck.userData.wallBounceTime * 0.5) * 0.1;
+            truck.userData.wallBounceTime--;
+        } else {
+            // Gradually return to normal height
+            truck.position.y = truck.position.y * 0.9 + 2 * 0.1;
+        }
+        
+        // Update health bar
+        updateHealthDisplay();
+    }
+    
+    // Create floating text for notifications and score
+    function createFloatingText(text, x, y, z) {
+        // Create HTML canvas for text rendering
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512;
+        canvas.height = 128;
+        
+        // Draw background with gradient
+        const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.8)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw border
+        context.strokeStyle = '#ff00ff';
+        context.lineWidth = 4;
+        context.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+        
+        // Draw text with glow
+        context.font = 'bold 48px Arial';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        
+        // Text shadow for glow effect
+        context.shadowColor = '#ff00ff';
+        context.shadowBlur = 15;
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
+        
+        // Draw text
+        context.fillStyle = '#ffffff';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        
+        // Create a sprite from the canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 1
+        });
+        
+        const sprite = new THREE.Sprite(material);
+        sprite.position.set(x, y, z);
+        sprite.scale.set(30, 8, 1); // Larger scale for visibility
+        scene.add(sprite);
+        
+        // Animation for floating upward and fading
+        sprite.userData = {
+            life: 60, // Life in frames
+            velocity: new THREE.Vector3(0, 0.3, 0) // Float upward
+        };
+        
+        // Add to particles array for updates
+        particles.push(sprite);
+    }
+
+    function updateCamera() {
+        // Update camera settings based on keys
+        if (keys['w']) cameraSettings.height += 0.5;
+        if (keys['s']) cameraSettings.height = Math.max(5, cameraSettings.height - 0.5);
+        if (keys['a']) cameraSettings.distance = Math.max(10, cameraSettings.distance - 0.5);
+        if (keys['d']) cameraSettings.distance += 0.5;
+        
+        // Calculate camera position based on truck position and rotation
+        const truckPos = truck.position;
+        const truckRot = truck.rotation.y;
+        
+        // Position camera behind truck
+        const cameraX = truckPos.x - Math.sin(truckRot) * cameraSettings.distance;
+        const cameraZ = truckPos.z - Math.cos(truckRot) * cameraSettings.distance;
+        const cameraY = truckPos.y + cameraSettings.height;
+        
+        // Use dynamic smoothing factor to allow for camera shake but still smooth movement
+        if (typeof cameraSmoothingFactor === 'undefined') {
+            cameraSmoothingFactor = 0.1;
+        }
+        
+        // Smooth camera following
+        camera.position.x = camera.position.x * (1 - cameraSmoothingFactor) + cameraX * cameraSmoothingFactor;
+        camera.position.y = camera.position.y * (1 - cameraSmoothingFactor) + cameraY * cameraSmoothingFactor;
+        camera.position.z = camera.position.z * (1 - cameraSmoothingFactor) + cameraZ * cameraSmoothingFactor;
+        
+        // Look at truck with some offset for better view when jumping
+        let lookHeight = truckPos.y + 2;
+        if (truck.userData.isJumping) {
+            // Look ahead more when in the air
+            const jumpFactor = Math.min(1, truck.userData.jumpTime / 30);
+            lookHeight += jumpFactor * 5; // Look higher during jumps
+        }
+        
+        camera.lookAt(truckPos.x, lookHeight, truckPos.z);
+    }
+    
+    // Damage and health system
+    function takeDamage(amount, reason) {
+        // Skip if already dead or respawning
+        if (isRespawning) return;
+        
+        // Get truck type configuration
+        const truckConfig = truck.userData.truckConfig || TRUCK_TYPES.neonCrusher;
+        
+        // If shield power-up is active, take no damage
+        if (truck.userData.shield) {
+            // Shield absorbs all damage
+            createFloatingText("SHIELD ABSORBED", truck.position.x, truck.position.y + 10, truck.position.z);
+            return;
+        }
+        
+        // Apply armor reduction to damage (higher armor = less damage)
+        let damageMultiplier = 1.0 - (truckConfig.armor || 0.7) * 0.5;
+        damageMultiplier = Math.max(0.2, damageMultiplier); // Ensure at least 20% damage gets through
+        
+        // Calculate damage amount
+        const actualDamage = Math.min(health, Math.floor(amount * damageMultiplier));
+        health -= actualDamage;
+        
+        // Update display
+        updateHealthDisplay();
+        
+        // Flash the truck red for visual feedback
+        if (truck) {
+            truck.traverse(child => {
+                if (child.isMesh && child.material) {
+                    // Store original color if not already stored
+                    if (!child.userData.originalColor && child.material.color) {
+                        child.userData.originalColor = child.material.color.clone();
+                    }
+                    
+                    // Change to red
+                    if (child.material.color) {
+                        child.material.color.set(0xff0000);
+                    }
+                    
+                    // Set timeout to restore color
+                    setTimeout(() => {
+                        if (child.material && child.userData.originalColor) {
+                            child.material.color.copy(child.userData.originalColor);
+                        }
+                    }, 200);
+                }
+            });
+        }
+        
+        // Check if truck is destroyed
+        if (health <= 0) {
+            startRespawn();
+        }
+    }
+    
+    function updateHealthDisplay() {
+        // Update the health text
+        document.getElementById('healthValue').textContent = health;
+        
+        // Update the health bar width
+        const healthPercent = (health / MAX_HEALTH) * 100;
+        document.getElementById('healthBar').style.width = `${healthPercent}%`;
+        
+        // Change color based on health
+        if (healthPercent > 60) {
+            document.getElementById('healthBar').style.background = 'linear-gradient(to right, #ff0000, #ff00ff)';
+        } else if (healthPercent > 30) {
+            document.getElementById('healthBar').style.background = 'linear-gradient(to right, #ff0000, #ff8800)';
+        } else {
+            document.getElementById('healthBar').style.background = '#ff0000';
+        }
+    }
+    
+    function startRespawn() {
+        isRespawning = true;
+        respawnTimer = 3; // 3 second respawn
+        
+        // Show respawn message
+        const respawnMessage = document.getElementById('respawnMessage');
+        respawnMessage.style.display = 'block';
+        document.getElementById('respawnCount').textContent = respawnTimer;
+        
+        // Start respawn countdown
+        const respawnInterval = setInterval(() => {
+            respawnTimer--;
+            document.getElementById('respawnCount').textContent = respawnTimer;
+            
+            if (respawnTimer <= 0) {
+                clearInterval(respawnInterval);
+                respawnTruck();
+            }
+        }, 1000);
+        
+        // Hide the truck
+        if (truck) {
+            truck.visible = false;
+        }
+    }
+    
+    function respawnTruck() {
+        // Reset health
+        health = MAX_HEALTH;
+        updateHealthDisplay();
+        
+        // Reset truck position and physics
+        if (truck) {
+            truck.position.set(0, 2, 0);
+            truck.rotation.set(0, 0, 0);
+            truckSpeed = 0;
+            truckDirection = 0;
+            truck.userData.isJumping = false;
+            truck.userData.wasOnRamp = false;
+            truck.visible = true;
+        }
+        
+        // Hide respawn message
+        document.getElementById('respawnMessage').style.display = 'none';
+        
+        // Reset respawn state
+        isRespawning = false;
+    }
+    
+    // Particles functionality has been removed
+    
+    // Update particles with enhanced effects
+    function updateParticles() {
+        // Update existing particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const particle = particles[i];
+            
+            // Skip invalid particles
+            if (!particle || !particle.userData) {
+                particles.splice(i, 1);
+                continue;
+            }
+            
+            // Update position
+            if (particle.userData.velocity) {
+                particle.position.add(particle.userData.velocity);
+            }
+            
+            // Apply gravity if specified
+            if (particle.userData.gravity) {
+                particle.userData.velocity.y -= particle.userData.gravity;
+            } else {
+                // Standard gravity for most particles
+                particle.userData.velocity.y -= 0.01;
+            }
+            
+            // Apply rotation if specified
+            if (particle.userData.rotationAxis && particle.userData.rotationSpeed) {
+                particle.rotateOnAxis(particle.userData.rotationAxis, particle.userData.rotationSpeed);
+            }
+            
+            // Handle different particle types
+            if (particle.isSprite) {
+                // For text sprites (floating scores, etc)
+                particle.material.opacity = Math.min(1, particle.userData.life / 20);
+            } else if (particle.userData.fadeRate) {
+                // Custom fade rate (used by fire effects)
+                particle.material.opacity -= particle.userData.fadeRate;
+                if (particle.material.opacity < 0) particle.material.opacity = 0;
+            } else {
+                // Standard opacity decay
+                const lifeRatio = particle.userData.life / (particle.userData.initialLife || 30);
+                particle.material.opacity = lifeRatio;
+            }
+            
+            // Handle particles with lights
+            if (particle.children.length > 0) {
+                for (let j = 0; j < particle.children.length; j++) {
+                    const child = particle.children[j];
+                    if (child.isLight) {
+                        // Fade light intensity with particle life
+                        child.intensity = (particle.userData.life / 30) * 0.8;
+                    }
+                }
+            }
+            
+            // Decrease life
+            particle.userData.life--;
+            
+            // Special effects for certain particle types
+            if (particle.userData.type === 'fire') {
+                // Fire particles get bigger as they rise then shrink
+                const sizeFactor = particle.userData.life / particle.userData.initialLife;
+                const size = Math.sin(sizeFactor * Math.PI) * particle.userData.maxSize;
+                particle.scale.set(size, size, size);
+            }
+            
+            // Remove dead particles
+            if (particle.userData.life <= 0) {
+                scene.remove(particle);
+                particles.splice(i, 1);
+            }
+        }
+        
+        // Update power-ups
+        if (window.powerUps) {
+            for (let i = window.powerUps.length - 1; i >= 0; i--) {
+                const powerUp = window.powerUps[i];
+                
+                // Skip invalid power-ups
+                if (!powerUp || !powerUp.userData) {
+                    window.powerUps.splice(i, 1);
+                    continue;
+                }
+                
+                // Rotate power-up (with default value if undefined)
+                powerUp.rotation.y += (powerUp.userData.rotationSpeed || 0.02);
+                
+                // Floating animation - safely use default values if properties are undefined
+                powerUp.userData.floatOffset = (powerUp.userData.floatOffset || 0) + 
+                    (powerUp.userData.floatSpeed || 0.05) * (powerUp.userData.floatDirection || 1);
+                
+                // Check bounds and reverse direction if needed
+                if (Math.abs(powerUp.userData.floatOffset) > 2) {
+                    powerUp.userData.floatDirection = (powerUp.userData.floatDirection || 1) * -1;
+                }
+                
+                // Apply float movement
+                powerUp.position.y += (powerUp.userData.floatSpeed || 0.05) * (powerUp.userData.floatDirection || 1);
+                
+                // Check for collision with truck
+                if (truck) {
+                    const dx = truck.position.x - powerUp.position.x;
+                    const dy = truck.position.y - powerUp.position.y;
+                    const dz = truck.position.z - powerUp.position.z;
+                    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    
+                    if (distance < 15) { // Collision radius
+                        // Apply power-up effect
+                        const powerUpType = powerUp.userData.type;
+                        const powerUpConfig = POWER_UPS[powerUpType];
+                        
+                        if (powerUpConfig && powerUpConfig.effect) {
+                            powerUpConfig.effect(truck);
+                            
+                            // Create floating text to show power-up name
+                            createFloatingText(powerUpConfig.name, 
+                                              truck.position.x, 
+                                              truck.position.y + 15, 
+                                              truck.position.z);
+                            
+                            // Play sound effect if sound is enabled
+                            if (soundEnabled) {
+                                SoundSystem.playExplosion();
+                            }
+                            
+                            // Create effect particles
+                            for (let p = 0; p < 15; p++) {
+                                const particleGeometry = new THREE.SphereGeometry(0.5, 4, 4);
+                                const particleMaterial = new THREE.MeshBasicMaterial({
+                                    color: powerUpConfig.color,
+                                    transparent: true,
+                                    opacity: 1
+                                });
+                                
+                                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                                particle.position.copy(powerUp.position);
+                                
+                                // Random direction
+                                const angle = Math.random() * Math.PI * 2;
+                                const elevation = Math.random() * Math.PI - Math.PI/2;
+                                const speed = 0.3 + Math.random() * 0.3;
+                                
+                                particle.userData = {
+                                    velocity: new THREE.Vector3(
+                                        Math.cos(angle) * Math.cos(elevation) * speed,
+                                        Math.sin(elevation) * speed + 0.2,
+                                        Math.sin(angle) * Math.cos(elevation) * speed
+                                    ),
+                                    life: 30 + Math.floor(Math.random() * 10)
+                                };
+                                
+                                scene.add(particle);
+                                particles.push(particle);
+                            }
+                            
+                            // Add score for collecting power-up
+                            score += 50;
+                            document.getElementById('score').textContent = `SCORE: ${score}`;
+                        }
+                        
+                        // Remove power-up
+                        scene.remove(powerUp);
+                        window.powerUps.splice(i, 1);
+                    }
+                }
+            }
+        }
+        
+        // Update power-up effects on truck
+        if (truck && truck.userData) {
+            // Update rapid fire effect
+            if (truck.userData.rapidFire) {
+                truck.userData.rapidFireTime--;
+                
+                // Update weapon effect
+                if (truck.userData.weaponEffect) {
+                    // Pulse the effect
+                    const pulse = Math.sin(truck.userData.rapidFireTime * 0.1) * 0.3 + 0.7;
+                    truck.userData.weaponEffect.scale.set(pulse, pulse, pulse);
+                    
+                    // Update light intensity
+                    if (truck.userData.weaponLight) {
+                        truck.userData.weaponLight.intensity = pulse;
+                    }
+                }
+                
+                // Add occasional spark
+                if (truck.userData.rapidFireTime % 5 === 0) {
+                    const sparkGeometry = new THREE.SphereGeometry(0.5, 4, 4);
+                    const sparkMaterial = new THREE.MeshBasicMaterial({
+                        color: 0xff0000,
+                        transparent: true,
+                        opacity: 1
+                    });
+                    
+                    const spark = new THREE.Mesh(sparkGeometry, sparkMaterial);
+                    spark.position.set(
+                        truck.position.x + (Math.random() - 0.5) * 5,
+                        truck.position.y + 5 + (Math.random() - 0.5) * 2,
+                        truck.position.z - 5 + (Math.random() - 0.5) * 2
+                    );
+                    
+                    spark.userData = {
+                        velocity: new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.3,
+                            (Math.random() * 0.2) + 0.1,
+                            (Math.random() - 0.5) * 0.3
+                        ),
+                        life: 20 + Math.floor(Math.random() * 10)
+                    };
+                    
+                    scene.add(spark);
+                    particles.push(spark);
+                }
+                
+                // End effect when time is up
+                if (truck.userData.rapidFireTime <= 0) {
+                    truck.userData.rapidFire = false;
+                    
+                    // Remove effect mesh
+                    if (truck.userData.weaponEffect) {
+                        truck.remove(truck.userData.weaponEffect);
+                        truck.userData.weaponEffect = null;
+                        truck.userData.weaponLight = null;
+                    }
+                    
+                    // Show notification
+                    createFloatingText("RAPID FIRE EXPIRED", truck.position.x, truck.position.y + 10, truck.position.z);
+                }
+            }
+            
+            // Update speed boost effect
+            if (truck.userData.speedBoost) {
+                truck.userData.speedBoostTime--;
+                
+                // Update speed trail
+                if (truck.userData.speedTrail) {
+                    // Adjust trail opacity based on speed
+                    const speedFactor = Math.min(1, Math.abs(truckSpeed) / 5);
+                    truck.userData.speedTrail.material.opacity = 0.3 + speedFactor * 0.4;
+                }
+                
+                // End effect when time is up
+                if (truck.userData.speedBoostTime <= 0) {
+                    truck.userData.speedBoost = false;
+                    
+                    // Remove effect mesh
+                    if (truck.userData.speedTrail) {
+                        truck.remove(truck.userData.speedTrail);
+                        truck.userData.speedTrail = null;
+                    }
+                    
+                    // Show notification
+                    createFloatingText("SPEED BOOST EXPIRED", truck.position.x, truck.position.y + 10, truck.position.z);
+                }
+            }
+            
+            // Update shield effect
+            if (truck.userData.shield) {
+                truck.userData.shieldTime--;
+                
+                // Update shield effect
+                if (truck.userData.shieldMesh) {
+                    // Pulse the shield
+                    const pulse = Math.sin(truck.userData.shieldTime * 0.05) * 0.1 + 0.9;
+                    truck.userData.shieldMesh.scale.set(pulse, pulse, pulse);
+                    
+                    // Rotate shield
+                    truck.userData.shieldMesh.rotation.y += 0.01;
+                    truck.userData.shieldMesh.rotation.x += 0.005;
+                    
+                    // Update light intensity
+                    if (truck.userData.shieldLight) {
+                        truck.userData.shieldLight.intensity = pulse * 0.5;
+                    }
+                }
+                
+                // End effect when time is up
+                if (truck.userData.shieldTime <= 0) {
+                    truck.userData.shield = false;
+                    
+                    // Remove effect mesh
+                    if (truck.userData.shieldMesh) {
+                        truck.remove(truck.userData.shieldMesh);
+                        truck.userData.shieldMesh = null;
+                        truck.userData.shieldLight = null;
+                    }
+                    
+                    // Show notification
+                    createFloatingText("SHIELD EXPIRED", truck.position.x, truck.position.y + 10, truck.position.z);
+                }
+            }
+            
+            // Update health boost effect
+            if (truck.userData.healthBoostTime > 0) {
+                truck.userData.healthBoostTime--;
+                
+                // Add healing particles
+                if (truck.userData.healthBoostTime % 3 === 0) {
+                    const particleGeometry = new THREE.SphereGeometry(0.5, 4, 4);
+                    const particleMaterial = new THREE.MeshBasicMaterial({
+                        color: 0x00ff00,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    
+                    const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                    
+                    // Random position around truck
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 5 + Math.random() * 5;
+                    particle.position.set(
+                        truck.position.x + Math.cos(angle) * radius,
+                        truck.position.y + Math.random() * 5,
+                        truck.position.z + Math.sin(angle) * radius
+                    );
+                    
+                    // Movement towards truck center and up
+                    const dx = truck.position.x - particle.position.x;
+                    const dz = truck.position.z - particle.position.z;
+                    const dist = Math.sqrt(dx * dx + dz * dz);
+                    
+                    particle.userData = {
+                        velocity: new THREE.Vector3(
+                            dx / dist * 0.3,
+                            0.2,
+                            dz / dist * 0.3
+                        ),
+                        life: 20 + Math.floor(Math.random() * 10)
+                    };
+                    
+                    scene.add(particle);
+                    particles.push(particle);
+                }
+            }
+        }
+    }
+    
+    // Create a projectile (bullet) from the truck
+    function shootProjectile() {
+        const now = Date.now();
+        
+        // Check if cooldown has elapsed - use reduced cooldown if rapid fire is active
+        const currentCooldown = truck.userData.rapidFire ? SHOT_COOLDOWN / 4 : SHOT_COOLDOWN;
+        if (now - lastShotTime < currentCooldown) return;
+        
+        // Update last shot time
+        lastShotTime = now;
+        
+        // Create a larger bullet
+        const bulletGeometry = new THREE.SphereGeometry(1.0, 8, 8); // Doubled size
+        const bulletMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xff00ff,
+            emissive: 0xff00ff
+        });
+        
+        const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+        
+        // Position bullet at front of much larger truck, adjusted for new size
+        bullet.position.set(
+            truck.position.x + Math.sin(truckDirection) * 10, // Further out from truck
+            truck.position.y + 3.0, // Higher for larger truck
+            truck.position.z + Math.cos(truckDirection) * 10 // Further out from truck
+        );
+        
+        // Set velocity in direction truck is facing - much faster bullets
+        const bulletSpeed = 10; // Doubled speed
+        bullet.userData = {
+            velocity: new THREE.Vector3(
+                Math.sin(truckDirection) * bulletSpeed,
+                0, // No vertical movement initially
+                Math.cos(truckDirection) * bulletSpeed
+            ),
+            life: 200 // Doubled lifespan so bullets travel further
+        };
+        
+        // Add to scene and projectiles array
+        scene.add(bullet);
+        projectiles.push(bullet);
+        
+        // Play shooting sound
+        if (soundEnabled) {
+            hitSound.currentTime = 0;
+            hitSound.volume = engineVolume * 0.5;
+            hitSound.playbackRate = 2.0; // Higher pitch for gun sound
+            hitSound.play().catch(e => console.log("Shot sound failed:", e));
+        }
+        
+        // Add muzzle flash particles
+        createMuzzleFlash(bullet.position.x, bullet.position.y, bullet.position.z);
+    }
+    
+    // Create muzzle flash particles
+    function createMuzzleFlash(x, y, z) {
+        // Create 5-8 particles for a bigger, more dramatic muzzle flash
+        const particleCount = 5 + Math.floor(Math.random() * 4);
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particleGeometry = new THREE.SphereGeometry(0.5, 6, 6); // Larger particles
+            const particleMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff00ff,
+                transparent: true,
+                opacity: 1
+            });
+            
+            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+            
+            // Position around the bullet start position - wider spread
+            particle.position.set(
+                x + (Math.random() - 0.5) * 1.5, // 3x wider spread
+                y + (Math.random() - 0.5) * 1.5, // 3x wider spread
+                z + (Math.random() - 0.5) * 1.5  // 3x wider spread
+            );
+            
+            // Random velocity outward - faster particles
+            particle.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.6, // Faster velocity
+                    (Math.random() - 0.5) * 0.6, // Faster velocity
+                    (Math.random() - 0.5) * 0.6  // Faster velocity
+                ),
+                life: 15 // Longer life for more visible effect
+            };
+            
+            scene.add(particle);
+            particles.push(particle);
+        }
+    }
+    
+    // Update projectiles and check for collisions
+    function updateProjectiles() {
+        // Update existing projectiles
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            const projectile = projectiles[i];
+            
+            // Update position
+            projectile.position.add(projectile.userData.velocity);
+            
+            // Apply slight gravity
+            projectile.userData.velocity.y -= 0.03;
+            
+            // Decrease life
+            projectile.userData.life--;
+            
+            // Check for collisions with obstacles
+            let hitObstacle = false;
+            
+            // Check each destructible obstacle
+            for (let j = 0; j < destructibleObstacles.length; j++) {
+                const obstacle = destructibleObstacles[j];
+                
+                // Skip already exploding obstacles
+                if (obstacle.exploding) continue;
+                
+                // Calculate distance to obstacle
+                const dx = projectile.position.x - obstacle.group.position.x;
+                const dy = projectile.position.y - obstacle.group.position.y;
+                const dz = projectile.position.z - obstacle.group.position.z;
+                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                
+                // Check if bullet hit obstacle
+                if (distance < obstacle.size / 2) {
+                    // Mark as hit
+                    hitObstacle = true;
+                    
+                    // Start obstacle explosion
+                    obstacle.exploding = true;
+                    obstacle.explosionTime = 0;
+                    
+                    // Hide main box
+                    obstacle.mainBox.visible = false;
+                    
+                    // Show explosion pieces
+                    obstacle.pieces.forEach(piece => {
+                        piece.mesh.visible = true;
+                        piece.mesh.position.set(0, 0, 0);
+                        piece.mesh.material.opacity = 1;
+                    });
+                    
+                    // Add score
+                    score += 15;
+                    document.getElementById('score').textContent = `SCORE: ${score}`;
+                    
+                    // Play explosion sound
+                    SoundSystem.playExplosion();
+                    
+                    // Random chance to spawn power-up (30%)
+                    if (Math.random() < 0.3) {
+                        // Spawn power-up at obstacle position
+                        spawnPowerUp(
+                            obstacle.group.position.x, 
+                            obstacle.group.position.y + 5, 
+                            obstacle.group.position.z
+                        );
+                        
+                        // Create glow effect for appearance
+                        const glowGeometry = new THREE.SphereGeometry(10, 16, 16);
+                        const glowMaterial = new THREE.MeshBasicMaterial({
+                            color: 0xffffff,
+                            transparent: true,
+                            opacity: 0.8
+                        });
+                        
+                        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                        glow.position.copy(obstacle.group.position);
+                        
+                        glow.userData = {
+                            life: 20,
+                            fadeRate: 0.04
+                        };
+                        
+                        scene.add(glow);
+                        particles.push(glow);
+                    }
+                    
+                    // Send obstacle destruction to server
+                    if (isConnected && socket && clientId) {
+                        // Assign an ID to this obstacle if it doesn't have one
+                        if (!obstacle.id) {
+                            obstacle.id = 'obstacle_' + (obstacleIdCounter++);
+                        }
+                        
+                        // Notify server about the destruction
+                        socket.send(JSON.stringify({
+                            type: 'obstacleDestroyed',
+                            obstacleId: obstacle.id
+                        }));
+                        
+                        // Update score on server
+                        sendScoreUpdate();
+                    }
+                    
+                    // Break since we already found a collision
+                    break;
+                }
+            }
+            
+            // Remove projectile if it's dead or hit something
+            if (projectile.userData.life <= 0 || hitObstacle) {
+                scene.remove(projectile);
+                projectiles.splice(i, 1);
+            }
+        }
+    }
+    
+    // Update exploding obstacles with enhanced synthwave effects
+    function updateObstacles() {
+        const time = performance.now() * 0.001; // Get time in seconds for animations
+        
+        // Update all obstacles (exploding and non-exploding)
+        destructibleObstacles.forEach(obstacle => {
+            // Animate light pulsation for non-exploding obstacles
+            if (!obstacle.exploding && obstacle.light && obstacle.light.userData && obstacle.light.userData.pulsate) {
+                // Create a pulsating effect with perlin noise
+                const phase = obstacle.light.userData.phase || 0;
+                const pulseSpeed = 2.0; // Speed of pulsation
+                
+                // Calculate new intensity with sine wave plus small random factor
+                const baseIntensity = obstacle.light.userData.intensity || 0.5;
+                const pulseFactor = 0.3 * (Math.sin(time * pulseSpeed + phase) * 0.5 + 0.5);
+                
+                // Apply new intensity
+                obstacle.light.intensity = baseIntensity + pulseFactor;
+            }
+            
+            // Handle exploding obstacles
+            if (obstacle.exploding) {
+                obstacle.explosionTime++;
+                
+                // Update each piece
+                obstacle.pieces.forEach(piece => {
+                    // Move pieces outward with slight acceleration
+                    const speedFactor = 1 + obstacle.explosionTime / 60; // Gradually speed up
+                    piece.mesh.position.x += piece.direction.x * 0.3 * speedFactor;
+                    piece.mesh.position.y += piece.direction.y * 0.3 * speedFactor + 0.08; // More upward movement
+                    piece.mesh.position.z += piece.direction.z * 0.3 * speedFactor;
+                    
+                    // Rotate pieces with increasing speed
+                    piece.mesh.rotateOnAxis(piece.rotationAxis, piece.rotationSpeed * speedFactor);
+                    
+                    // Make sure piece light is visible
+                    if (piece.light) {
+                        piece.light.visible = true;
+                        
+                        // Pulse the light during explosion
+                        const pulseFactor = 0.5 * (Math.sin(obstacle.explosionTime * 0.2) * 0.5 + 0.5);
+                        piece.light.intensity = 0.8 + pulseFactor;
+                    }
+                    
+                    // Fade out pieces
+                    if (obstacle.explosionTime > obstacle.explosionDuration / 2) {
+                        const fadeProgress = (obstacle.explosionTime - obstacle.explosionDuration / 2) / (obstacle.explosionDuration / 2);
+                        piece.mesh.material.opacity = 1 - fadeProgress;
+                        
+                        // Also fade out the light
+                        if (piece.light) {
+                            piece.light.intensity *= (1 - fadeProgress * 0.8);
+                        }
+                    }
+                });
+                
+                // Create occasional spark particles during explosion
+                if (obstacle.explosionTime < obstacle.explosionDuration * 0.7 && 
+                    obstacle.explosionTime % 3 === 0) {
+                    
+                    // Add spark particle
+                    const sparkGeometry = new THREE.SphereGeometry(0.5, 4, 4);
+                    const sparkMaterial = new THREE.MeshBasicMaterial({
+                        color: obstacle.color || 0xff00ff,
+                        transparent: true,
+                        opacity: 1
+                    });
+                    
+                    const spark = new THREE.Mesh(sparkGeometry, sparkMaterial);
+                    spark.position.copy(obstacle.group.position);
+                    
+                    // Random direction for spark
+                    const angle = Math.random() * Math.PI * 2;
+                    const elevation = Math.random() * Math.PI - Math.PI/2;
+                    const speed = 0.3 + Math.random() * 0.5;
+                    
+                    spark.userData = {
+                        velocity: new THREE.Vector3(
+                            Math.cos(angle) * Math.cos(elevation) * speed,
+                            Math.sin(elevation) * speed + 0.2, // Upward bias
+                            Math.sin(angle) * Math.cos(elevation) * speed
+                        ),
+                        life: 20 + Math.floor(Math.random() * 15)
+                    };
+                    
+                    scene.add(spark);
+                    particles.push(spark);
+                }
+                
+                // Remove obstacle once explosion is complete
+                if (obstacle.explosionTime >= obstacle.explosionDuration) {
+                    obstacle.pieces.forEach(piece => {
+                        piece.mesh.visible = false;
+                        if (piece.light) piece.light.visible = false;
+                    });
+                    obstacle.exploding = false;
+                    
+                    // Turn off the main light
+                    if (obstacle.light) {
+                        obstacle.light.visible = false;
+                    }
+                }
+            }
+        });
+    }
+
+    // Animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        if (truck && camera && renderer) {
+            // Only update truck if not respawning
+            if (!isRespawning) {
+                updateTruck();
+                
+                // Update engine sound based on truck speed
+                SoundSystem.updateEngine(truckSpeed);
+                
+                // Send position updates to server for multiplayer
+                if (isConnected) {
+                    sendPositionUpdate();
+                }
+            }
+            
+            // Always update these even during respawn
+            updateCamera();
+            updateObstacles();
+            updateParticles();
+            updateProjectiles(); // Update projectiles and check for collisions
+            
+            renderer.render(scene, camera);
+        }
+    }
+    
+    // Multiplayer functions
+    function setupMultiplayer() {
+        // Get WebSocket protocol (wss if page is served via https, otherwise ws)
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        
+        // Construct WebSocket URL (default to localhost if connecting directly)
+        const host = window.location.hostname || 'localhost';
+        const wsPort = 8765; // Default WebSocket port
+        const wsUrl = `${protocol}//${host}:${wsPort}`;
+        
+        console.log(`Connecting to WebSocket server at ${wsUrl}`);
+        
+        // Create WebSocket connection
+        try {
+            socket = new WebSocket(wsUrl);
+            
+            // Connection opened handler
+            socket.addEventListener('open', (event) => {
+                console.log('Connected to the WebSocket server');
+                isConnected = true;
+                
+                // Update UI to show connected status
+                document.getElementById('playerList').style.display = 'block';
+                playersListVisible = true;
+                
+                // Show a welcome message in chat
+                addChatMessage('SYSTEM', 'Connected to server. Welcome to Monster Truck Stadium!', '#00ffff');
+            });
+            
+            // Handle server messages
+            socket.addEventListener('message', handleServerMessage);
+            
+            // Handle connection close
+            socket.addEventListener('close', (event) => {
+                console.log('Disconnected from WebSocket server');
+                isConnected = false;
+                
+                // Show disconnection message
+                addChatMessage('SYSTEM', 'Disconnected from server.', '#ff0000');
+                
+                // Clear other players
+                for (const playerId in otherPlayers) {
+                    if (otherPlayers[playerId].mesh) {
+                        scene.remove(otherPlayers[playerId].mesh);
+                    }
+                }
+                otherPlayers = {};
+                
+                // Update players list
+                updatePlayersList();
+                
+                // Try to reconnect after a delay
+                setTimeout(() => {
+                    if (!isConnected) {
+                        setupMultiplayer();
+                    }
+                }, 5000);
+            });
+            
+            // Handle connection errors
+            socket.addEventListener('error', (event) => {
+                console.error('WebSocket error:', event);
+                addChatMessage('SYSTEM', 'Connection error. Playing in single-player mode.', '#ff0000');
+            });
+            
+        } catch (error) {
+            console.error('Error creating WebSocket connection:', error);
+            // Fall back to offline mode
+            addChatMessage('SYSTEM', 'Could not connect to server. Playing in single-player mode.', '#ff0000');
+        }
+    }
+    
+    function handleServerMessage(event) {
+        try {
+            const message = JSON.parse(event.data);
+            
+            // Handle different message types
+            switch (message.type) {
+                case 'register':
+                    // Store client ID
+                    clientId = message.id;
+                    console.log(`Registered with server, assigned ID: ${clientId}`);
+                    
+                    // Send initial player info
+                    sendPlayerInfo();
+                    
+                    // Set up existing trucks from game state
+                    if (message.gameState && message.gameState.trucks) {
+                        for (const playerId in message.gameState.trucks) {
+                            if (playerId !== clientId) {
+                                const playerData = message.gameState.trucks[playerId];
+                                createOtherPlayerTruck(playerId, playerData);
+                            }
+                        }
+                    }
+                    break;
+                    
+                case 'newPlayer':
+                    // A new player has joined
+                    if (message.id !== clientId) {
+                        console.log(`New player joined: ${message.nickname} (${message.id})`);
+                        
+                        // Create truck for the new player
+                        createOtherPlayerTruck(message.id, message);
+                        
+                        // Update players list
+                        updatePlayersList();
+                        
+                        // Show a message in chat
+                        addChatMessage('SYSTEM', `${message.nickname} joined the game`, '#00ffff');
+                    }
+                    break;
+                    
+                case 'playerDisconnect':
+                    // A player has disconnected
+                    if (message.id !== clientId && otherPlayers[message.id]) {
+                        const nickname = otherPlayers[message.id].nickname || "Unknown player";
+                        
+                        // Remove the player's truck
+                        if (otherPlayers[message.id].mesh) {
+                            scene.remove(otherPlayers[message.id].mesh);
+                        }
+                        
+                        // Remove from players list
+                        delete otherPlayers[message.id];
+                        updatePlayersList();
+                        
+                        // Show a message in chat
+                        addChatMessage('SYSTEM', `${nickname} left the game`, '#ff00ff');
+                    }
+                    break;
+                    
+                case 'playerMove':
+                    // Update other player's position
+                    if (message.id !== clientId && otherPlayers[message.id]) {
+                        updateOtherPlayerPosition(message.id, message);
+                    }
+                    break;
+                    
+                case 'obstacleDestroyed':
+                    // Handle obstacle destruction by other players
+                    handleRemoteObstacleDestruction(message.obstacleId, message.destroyedBy);
+                    break;
+                    
+                case 'scoreUpdate':
+                    // Update other player's score
+                    if (message.id !== clientId && otherPlayers[message.id]) {
+                        otherPlayers[message.id].score = message.score;
+                        updatePlayersList();
+                    }
+                    break;
+                    
+                case 'playerColorChange':
+                    // Update other player's truck color
+                    if (message.id !== clientId && otherPlayers[message.id]) {
+                        otherPlayers[message.id].color = message.color;
+                        
+                        // Update the truck mesh color
+                        if (otherPlayers[message.id].mesh) {
+                            updateOtherPlayerColor(message.id, message.color);
+                        }
+                        
+                        // Update players list
+                        updatePlayersList();
+                    }
+                    break;
+                    
+                case 'playerNicknameChange':
+                    // Update other player's nickname
+                    if (message.id !== clientId && otherPlayers[message.id]) {
+                        const oldNickname = otherPlayers[message.id].nickname;
+                        otherPlayers[message.id].nickname = message.nickname;
+                        
+                        // Update players list
+                        updatePlayersList();
+                        
+                        // Show a message in chat
+                        addChatMessage('SYSTEM', `${oldNickname} changed name to ${message.nickname}`, '#00ffff');
+                    }
+                    break;
+                    
+                case 'chatMessage':
+                    // Handle chat messages from other players
+                    if (message.id !== clientId) {
+                        const senderNickname = (otherPlayers[message.id] && otherPlayers[message.id].nickname) || "Unknown";
+                        const senderColor = (otherPlayers[message.id] && otherPlayers[message.id].color) || "#ffffff";
+                        
+                        // Add message to chat
+                        addChatMessage(senderNickname, message.message, senderColor);
+                        
+                        // Show chat window if hidden
+                        if (!chatVisible) {
+                            toggleChat();
+                        }
+                    }
+                    break;
+                    
+                case 'pong':
+                    // Ping response, could use for latency calculation
+                    break;
+                    
+                default:
+                    console.log(`Unknown message type: ${message.type}`);
+            }
+            
+        } catch (error) {
+            console.error('Error parsing server message:', error);
+        }
+    }
+    
+    function sendPlayerInfo() {
+        if (!isConnected || !socket || !clientId) return;
+        
+        // Send color, nickname and truck type to server
+        socket.send(JSON.stringify({
+            type: 'setColor',
+            color: truckColor
+        }));
+        
+        socket.send(JSON.stringify({
+            type: 'setNickname',
+            nickname: nickname || 'Player_' + clientId.substr(0, 5)
+        }));
+        
+        socket.send(JSON.stringify({
+            type: 'setTruckType',
+            truckType: selectedTruckType
+        }));
+    }
+    
+    function sendPositionUpdate() {
+        if (!isConnected || !socket || !clientId || !truck) return;
+        
+        // Only send updates at the specified interval to reduce network traffic
+        const now = Date.now();
+        if (now - lastPositionUpdate < POSITION_UPDATE_INTERVAL) return;
+        lastPositionUpdate = now;
+        
+        // Send position, rotation, and speed
+        socket.send(JSON.stringify({
+            type: 'updatePosition',
+            position: {
+                x: truck.position.x,
+                y: truck.position.y,
+                z: truck.position.z
+            },
+            rotation: {
+                y: truck.rotation.y
+            },
+            speed: truckSpeed
+        }));
+    }
+    
+    function sendScoreUpdate() {
+        if (!isConnected || !socket || !clientId) return;
+        
+        // Send current score to server
+        socket.send(JSON.stringify({
+            type: 'scoreUpdate',
+            score: score
+        }));
+    }
+    
+    function sendChatMessage(message) {
+        if (!isConnected || !socket || !clientId) return;
+        
+        // Validate message
+        message = message.trim();
+        if (!message) return;
+        
+        // Send message to server
+        socket.send(JSON.stringify({
+            type: 'chatMessage',
+            message: message
+        }));
+        
+        // Add to local chat
+        addChatMessage(nickname || 'You', message, truckColor);
+    }
+    
+    function addChatMessage(sender, message, color) {
+        const chatMessages = document.getElementById('chatMessages');
+        
+        // Create message element
+        const messageElement = document.createElement('div');
+        messageElement.style.marginBottom = '8px';
+        
+        // Add timestamp
+        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Format message
+        messageElement.innerHTML = `
+            <span style="color: #888888;">[${timestamp}]</span> 
+            <span style="color: ${color || '#ffffff'}; font-weight: bold;">${sender}:</span> 
+            <span>${message}</span>
+        `;
+        
+        // Add to chat container
+        chatMessages.appendChild(messageElement);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function toggleChat() {
+        chatVisible = !chatVisible;
+        document.getElementById('chatWindow').style.display = chatVisible ? 'block' : 'none';
+        
+        // Focus input when showing chat
+        if (chatVisible) {
+            document.getElementById('chatInput').focus();
+        }
+    }
+    
+    function updatePlayersList() {
+        const playerListContent = document.getElementById('playerListContent');
+        
+        // Clear current list
+        playerListContent.innerHTML = '';
+        
+        // Add local player
+        const localPlayerElement = document.createElement('div');
+        localPlayerElement.style.display = 'flex';
+        localPlayerElement.style.justifyContent = 'space-between';
+        localPlayerElement.style.marginBottom = '5px';
+        localPlayerElement.style.padding = '5px';
+        localPlayerElement.style.borderRadius = '3px';
+        localPlayerElement.style.backgroundColor = 'rgba(255, 0, 255, 0.3)';
+        
+        localPlayerElement.innerHTML = `
+            <div>
+                <span style="color: ${truckColor};">■</span> 
+                <span>${nickname || 'You'} (You)</span>
+            </div>
+            <div>${score}</div>
+        `;
+        
+        playerListContent.appendChild(localPlayerElement);
+        
+        // Add other players
+        for (const playerId in otherPlayers) {
+            const player = otherPlayers[playerId];
+            const playerElement = document.createElement('div');
+            playerElement.style.display = 'flex';
+            playerElement.style.justifyContent = 'space-between';
+            playerElement.style.marginBottom = '5px';
+            playerElement.style.padding = '5px';
+            playerElement.style.borderRadius = '3px';
+            
+            playerElement.innerHTML = `
+                <div>
+                    <span style="color: ${player.color || '#ffffff'};">■</span> 
+                    <span>${player.nickname || 'Unknown'}</span>
+                </div>
+                <div>${player.score || 0}</div>
+            `;
+            
+            playerListContent.appendChild(playerElement);
+        }
+    }
+    
+    function createOtherPlayerTruck(playerId, playerData) {
+        // Store player data
+        otherPlayers[playerId] = {
+            id: playerId,
+            nickname: playerData.nickname || 'Player',
+            color: playerData.color || '#ff00ff',
+            score: playerData.score || 0,
+            position: playerData.position || { x: 0, y: 2, z: 0 },
+            rotation: playerData.rotation || { y: 0 },
+            speed: playerData.speed || 0,
+            truckType: playerData.truckType || 'standard'
+        };
+        
+        // Create simplified truck mesh for other players
+        const otherTruck = new THREE.Group();
+        
+        // 50% bigger for all multiplayer trucks
+        const scale = 1.5;
+        
+        // Get truck color
+        const truckColorValue = new THREE.Color(playerData.color || '#ff00ff');
+        
+        // Common material for truck body
+        const chassisMaterial = new THREE.MeshPhongMaterial({ 
+            color: truckColorValue,
+            shininess: 80,
+            specular: 0xffffff
+        });
+        
+        // Create different truck types
+        const truckType = playerData.truckType || 'standard';
+        
+        if (truckType === 'monster') {
+            // Monster truck - taller with bigger wheels
+            // Chassis 
+            const chassisGeometry = new THREE.BoxGeometry(10.8 * scale, 2.4 * scale, 19.2 * scale);
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 1.2 * scale * 1.2; // Higher off ground
+            otherTruck.add(chassis);
+            
+            // Cab - taller
+            const cabGeometry = new THREE.BoxGeometry(9.6 * scale, 3.6 * scale * 1.2, 7.2 * scale);
+            const cab = new THREE.Mesh(cabGeometry, chassisMaterial);
+            cab.position.set(0, 3.6 * scale * 1.2, -4.8 * scale);
+            otherTruck.add(cab);
+            
+            // Larger monster truck wheels
+            const wheelPositions = [
+                { x: -5.28 * scale, y: 3.36 * scale * 1.3, z: -7.2 * scale },
+                { x: 5.28 * scale, y: 3.36 * scale * 1.3, z: -7.2 * scale },
+                { x: -5.28 * scale, y: 3.36 * scale * 1.3, z: 7.2 * scale },
+                { x: 5.28 * scale, y: 3.36 * scale * 1.3, z: 7.2 * scale }
+            ];
+            
+            const wheelGeometry = new THREE.CylinderGeometry(3.36 * scale * 1.3, 3.36 * scale * 1.3, 2.4 * scale * 1.2, 16);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x333333, shininess: 30 });
+            
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.position.set(pos.x, pos.y, pos.z);
+                wheel.rotation.z = Math.PI / 2;
+                otherTruck.add(wheel);
+            });
+            
+            // Add roll cage
+            const rollBarGeometry = new THREE.TorusGeometry(5 * scale, 0.4 * scale, 8, 16, Math.PI);
+            const rollBarMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+            
+            // Front and rear roll bars
+            const frontRollBar = new THREE.Mesh(rollBarGeometry, rollBarMaterial);
+            frontRollBar.rotation.x = -Math.PI/2;
+            frontRollBar.position.set(0, 6 * scale, -7 * scale);
+            otherTruck.add(frontRollBar);
+            
+            const rearRollBar = new THREE.Mesh(rollBarGeometry, rollBarMaterial);
+            rearRollBar.rotation.x = -Math.PI/2;
+            rearRollBar.position.set(0, 6 * scale, 7 * scale);
+            otherTruck.add(rearRollBar);
+            
+        } else if (truckType === 'racer') {
+            // Racing truck - sleeker and lower
+            
+            // Sleeker chassis
+            const chassisGeometry = new THREE.BoxGeometry(9 * scale, 1.8 * scale, 22 * scale);
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 1.0 * scale; // Lower to ground
+            otherTruck.add(chassis);
+            
+            // Sleeker cab
+            const cabGeometry = new THREE.BoxGeometry(8.5 * scale, 2.5 * scale, 6 * scale);
+            const cab = new THREE.Mesh(cabGeometry, chassisMaterial);
+            cab.position.set(0, 2.7 * scale, -7 * scale);
+            otherTruck.add(cab);
+            
+            // Add spoiler
+            const spoilerBaseGeometry = new THREE.BoxGeometry(8 * scale, 0.3 * scale, 1 * scale);
+            const spoilerBase = new THREE.Mesh(spoilerBaseGeometry, chassisMaterial);
+            spoilerBase.position.set(0, 3 * scale, 10 * scale);
+            otherTruck.add(spoilerBase);
+            
+            // Spoiler fin
+            const spoilerFinGeometry = new THREE.BoxGeometry(8 * scale, 2 * scale, 0.3 * scale);
+            const spoilerFin = new THREE.Mesh(spoilerFinGeometry, chassisMaterial);
+            spoilerFin.position.set(0, 1 * scale, 0);
+            spoilerBase.add(spoilerFin);
+            
+            // Thinner, sportier wheels
+            const wheelPositions = [
+                { x: -4.2 * scale, y: 2.8 * scale, z: -7.5 * scale },
+                { x: 4.2 * scale, y: 2.8 * scale, z: -7.5 * scale },
+                { x: -4.2 * scale, y: 2.8 * scale, z: 7.5 * scale },
+                { x: 4.2 * scale, y: 2.8 * scale, z: 7.5 * scale }
+            ];
+            
+            const wheelGeometry = new THREE.CylinderGeometry(2.8 * scale, 2.8 * scale, 1.8 * scale, 16);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x222222, shininess: 80 });
+            
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.position.set(pos.x, pos.y, pos.z);
+                wheel.rotation.z = Math.PI / 2;
+                otherTruck.add(wheel);
+            });
+            
+        } else {
+            // Standard truck (default)
+            
+            // Chassis
+            const chassisGeometry = new THREE.BoxGeometry(10.8 * scale, 2.4 * scale, 19.2 * scale);
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 1.2 * scale;
+            otherTruck.add(chassis);
+            
+            // Cab
+            const cabGeometry = new THREE.BoxGeometry(9.6 * scale, 3.6 * scale, 7.2 * scale);
+            const cab = new THREE.Mesh(cabGeometry, chassisMaterial);
+            cab.position.set(0, 3.6 * scale, -4.8 * scale);
+            otherTruck.add(cab);
+            
+            // Regular wheels
+            const wheelPositions = [
+                { x: -5.28 * scale, y: 3.36 * scale, z: -7.2 * scale },
+                { x: 5.28 * scale, y: 3.36 * scale, z: -7.2 * scale },
+                { x: -5.28 * scale, y: 3.36 * scale, z: 7.2 * scale },
+                { x: 5.28 * scale, y: 3.36 * scale, z: 7.2 * scale }
+            ];
+            
+            const wheelGeometry = new THREE.CylinderGeometry(3.36 * scale, 3.36 * scale, 2.4 * scale, 16);
+            const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x333333, shininess: 30 });
+            
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.position.set(pos.x, pos.y, pos.z);
+                wheel.rotation.z = Math.PI / 2;
+                otherTruck.add(wheel);
+            });
+        }
+        
+        // Common elements - Gun on all truck types
+        const gunBaseGeometry = new THREE.BoxGeometry(3.6 * scale, 1.2 * scale, 3.6 * scale);
+        const gunBaseMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+        const gunBase = new THREE.Mesh(gunBaseGeometry, gunBaseMaterial);
+        gunBase.position.set(0, 5.28 * scale, -2.4 * scale);
+        otherTruck.add(gunBase);
+        
+        const gunBarrelGeometry = new THREE.CylinderGeometry(0.72 * scale, 0.72 * scale, 8.64 * scale, 8);
+        const gunBarrelMaterial = new THREE.MeshPhongMaterial({ color: 0x444444 });
+        const gunBarrel = new THREE.Mesh(gunBarrelGeometry, gunBarrelMaterial);
+        gunBarrel.rotation.x = -Math.PI / 2;
+        gunBarrel.position.set(0, 0, -3.6 * scale);
+        gunBase.add(gunBarrel);
+        
+        // Add player nickname as floating text
+        const createPlayerLabel = () => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 64;
+            
+            // Draw background
+            context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw border
+            context.strokeStyle = playerData.color || '#ff00ff';
+            context.lineWidth = 2;
+            context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+            
+            // Draw text
+            context.font = '24px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillStyle = playerData.color || '#ff00ff';
+            context.fillText(playerData.nickname || 'Player', canvas.width / 2, canvas.height / 2);
+            
+            // Create texture and sprite
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            
+            // Set label height based on truck type
+            let labelHeight = 10 * scale;
+            if (truckType === 'monster') labelHeight *= 1.2;
+            
+            sprite.position.set(0, labelHeight, 0);
+            sprite.scale.set(16 * scale, 4 * scale, 1);
+            
+            return sprite;
+        };
+        
+        // Add name label to truck
+        const nameLabel = createPlayerLabel();
+        otherTruck.add(nameLabel);
+        
+        // Set initial position and rotation
+        if (playerData.position) {
+            otherTruck.position.set(
+                playerData.position.x || 0,
+                playerData.position.y || 2,
+                playerData.position.z || 0
+            );
+        }
+        
+        if (playerData.rotation) {
+            otherTruck.rotation.y = playerData.rotation.y || 0;
+        }
+        
+        // Add to scene
+        scene.add(otherTruck);
+        
+        // Store the mesh for later updates
+        otherPlayers[playerId].mesh = otherTruck;
+        
+        // Update players list
+        updatePlayersList();
+    }
+    
+    function updateOtherPlayerPosition(playerId, data) {
+        if (!otherPlayers[playerId] || !otherPlayers[playerId].mesh) return;
+        
+        const otherTruck = otherPlayers[playerId].mesh;
+        
+        // Store new data
+        otherPlayers[playerId].position = data.position;
+        otherPlayers[playerId].rotation = data.rotation;
+        otherPlayers[playerId].speed = data.speed;
+        
+        // Update position with smoothing
+        otherTruck.position.x = otherTruck.position.x * 0.8 + data.position.x * 0.2;
+        otherTruck.position.y = otherTruck.position.y * 0.8 + data.position.y * 0.2;
+        otherTruck.position.z = otherTruck.position.z * 0.8 + data.position.z * 0.2;
+        
+        // Update rotation with smoothing
+        const currentRotation = otherTruck.rotation.y;
+        const targetRotation = data.rotation.y;
+        
+        // Handle rotation wrapping around 2π
+        let rotationDiff = targetRotation - currentRotation;
+        if (rotationDiff > Math.PI) rotationDiff -= Math.PI * 2;
+        if (rotationDiff < -Math.PI) rotationDiff += Math.PI * 2;
+        
+        otherTruck.rotation.y = currentRotation + rotationDiff * 0.2;
+    }
+    
+    function updateOtherPlayerColor(playerId, color) {
+        if (!otherPlayers[playerId] || !otherPlayers[playerId].mesh) return;
+        
+        // Update stored color
+        otherPlayers[playerId].color = color;
+        
+        // Update mesh materials
+        otherPlayers[playerId].mesh.traverse(child => {
+            if (child.isMesh && child.material && child.material.color && 
+                (child.material.color.getHex() !== 0x333333)) { // Don't change wheel color
+                
+                child.material.color.set(color);
+            }
+        });
+        
+        // Update name label
+        otherPlayers[playerId].mesh.children.forEach(child => {
+            if (child.isSprite) {
+                // Redraw the label with the new color
+                const canvas = child.material.map.image;
+                const context = canvas.getContext('2d');
+                
+                // Clear the canvas
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw background
+                context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw border
+                context.strokeStyle = color;
+                context.lineWidth = 2;
+                context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+                
+                // Draw text
+                context.font = '24px Arial';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                context.fillStyle = color;
+                context.fillText(otherPlayers[playerId].nickname || 'Player', canvas.width / 2, canvas.height / 2);
+                
+                // Update texture
+                child.material.map.needsUpdate = true;
+            }
+        });
+    }
+    
+    function handleRemoteObstacleDestruction(obstacleId, destroyedBy) {
+        // Find the obstacle by ID in the destructible obstacles array
+        // Since we may not have synchronized obstacle IDs, just detonate a random one for demo
+        for (let i = 0; i < destructibleObstacles.length; i++) {
+            const obstacle = destructibleObstacles[i];
+            
+            // Skip already exploding obstacles
+            if (obstacle.exploding) continue;
+            
+            // Start obstacle explosion
+            obstacle.exploding = true;
+            obstacle.explosionTime = 0;
+            
+            // Hide main box
+            obstacle.mainBox.visible = false;
+            
+            // Show explosion pieces
+            obstacle.pieces.forEach(piece => {
+                piece.mesh.visible = true;
+                piece.mesh.position.set(0, 0, 0);
+                piece.mesh.material.opacity = 1;
+            });
+            
+            // Play explosion sound
+            SoundSystem.playExplosion();
+            
+            // Only detonate one obstacle for this remote event
+            break;
+        }
+    }
+    
+    function setupChatControls() {
+        // Toggle chat with C key
+        document.addEventListener('keydown', (event) => {
+            if (event.key.toLowerCase() === 'c') {
+                toggleChat();
+            }
+            
+            // Submit message with Enter if chat is visible
+            if (event.key === 'Enter' && chatVisible) {
+                const chatInput = document.getElementById('chatInput');
+                const message = chatInput.value;
+                
+                if (message.trim()) {
+                    sendChatMessage(message);
+                    chatInput.value = '';
+                }
+            }
+        });
+        
+        // Close chat button
+        document.getElementById('closeChatBtn').addEventListener('click', () => {
+            toggleChat();
+        });
+        
+        // Chat input Enter key
+        document.getElementById('chatInput').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                const message = event.target.value;
+                
+                if (message.trim()) {
+                    sendChatMessage(message);
+                    event.target.value = '';
+                }
+                
+                event.preventDefault();
+            }
+        });
+    }
+    
+    // Function to get nickname from localStorage or generate a random one
+    function getNickname() {
+        let name = localStorage.getItem('monsterTruckNickname');
+        
+        if (name) {
+            name = name.trim();
+            
+            // Additional validation for safety
+            if (name.length < 3) {
+                name = "Player_" + Math.floor(Math.random() * 1000);
+            }
+            
+            if (name.length > 12) {
+                name = name.substring(0, 12);
+            }
+            
+            return name;
+        } else {
+            // If not found, generate a random name
+            return "Player_" + Math.floor(Math.random() * 1000);
+        }
+    }
+    
+    // Get selected truck type from localStorage or use default
+    function getTruckType() {
+        const savedType = localStorage.getItem('monsterTruckType');
+        if (savedType && ['neonCrusher', 'gridRipper', 'laserWheel'].includes(savedType)) {
+            return savedType;
+        }
+        return 'neonCrusher'; // Default truck
+    }
+    
+    // Get selected color from localStorage or use default
+    function getTruckColor() {
+        const savedColor = localStorage.getItem('monsterTruckColor');
+        if (savedColor && /^#[0-9A-F]{6}$/i.test(savedColor)) {
+            return savedColor;
+        }
+        return '#ff00ff'; // Default pink
+    }
+    
+    // Truck types with their properties
+    const TRUCK_TYPES = {
+        'neonCrusher': {
+            name: 'NEON CRUSHER',
+            speed: 0.7,         // Max speed (0-1)
+            acceleration: 0.7,  // Acceleration rate (0-1)
+            handling: 0.8,      // Handling/turning capability (0-1)
+            armor: 0.7,         // Damage resistance (0-1)
+            description: 'Balanced performance, excellent handling'
+        },
+        'gridRipper': {
+            name: 'GRID RIPPER',
+            speed: 0.9,         // Higher speed
+            acceleration: 0.85, // Better acceleration
+            handling: 0.65,     // Slightly worse handling
+            armor: 0.4,         // Much lower armor
+            description: 'High speed, light armor'
+        },
+        'laserWheel': {
+            name: 'LASER WHEEL',
+            speed: 0.5,         // Lower speed
+            acceleration: 0.4,  // Slower acceleration
+            handling: 0.5,      // Worse handling
+            armor: 1.0,         // Maximum armor
+            description: 'Heavy armor, powerful but slower'
+        }
+    };
+    
+    // Power-up types
+    const POWER_UPS = {
+        'healthRegen': {
+            name: 'HEALTH BOOST',
+            color: '#00ff00',
+            duration: 0,           // Instant effect
+            effect: function(truck) {
+                // Restore 30 health points
+                const healthBefore = health;
+                health = Math.min(MAX_HEALTH, health + 30);
+                const healthGained = health - healthBefore;
+                
+                // Show floating text
+                createFloatingText(`+${healthGained} HEALTH`, truck.position.x, truck.position.y + 10, truck.position.z);
+                
+                // Visual effect
+                truck.userData.healthBoostTime = 60; // Frames for visual effect
+            }
+        },
+        'rapidFire': {
+            name: 'RAPID FIRE',
+            color: '#ff0000',
+            duration: 30 * 60,     // 30 seconds (at 60fps)
+            effect: function(truck) {
+                // Set rapid fire state
+                truck.userData.rapidFire = true;
+                truck.userData.rapidFireTime = 30 * 60; // 30 seconds at 60fps
+                
+                // Show floating text
+                createFloatingText("RAPID FIRE!", truck.position.x, truck.position.y + 10, truck.position.z);
+                
+                // Create weapon effect
+                createWeaponEffect(truck);
+            }
+        },
+        'speedBoost': {
+            name: 'SPEED BOOST',
+            color: '#00ffff',
+            duration: 15 * 60,     // 15 seconds (at 60fps)
+            effect: function(truck) {
+                // Set speed boost state
+                truck.userData.speedBoost = true;
+                truck.userData.speedBoostTime = 15 * 60; // 15 seconds at 60fps
+                
+                // Show floating text
+                createFloatingText("SPEED BOOST!", truck.position.x, truck.position.y + 10, truck.position.z);
+                
+                // Create speed trail effect
+                createSpeedTrail(truck);
+            }
+        },
+        'shield': {
+            name: 'SHIELD',
+            color: '#ffff00',
+            duration: 20 * 60,     // 20 seconds (at 60fps)
+            effect: function(truck) {
+                // Set shield state
+                truck.userData.shield = true;
+                truck.userData.shieldTime = 20 * 60; // 20 seconds at 60fps
+                
+                // Show floating text
+                createFloatingText("SHIELD ACTIVE!", truck.position.x, truck.position.y + 10, truck.position.z);
+                
+                // Create shield visual
+                createShieldEffect(truck);
+            }
+        }
+    };
+    
+    // Track selected truck type and color
+    let selectedTruckType = getTruckType();
+    let selectedColor = getTruckColor();
+    
+    // Function to set up truck and color selectors
+    function setupTruckSelectors() {
+        try {
+            console.log("Setting up truck selectors...");
+            
+            // Truck type selection
+            const truckOptions = document.querySelectorAll('.truck-option');
+            if (truckOptions.length === 0) {
+                console.error("No truck options found with class 'truck-option'");
+                return;
+            }
+            
+            console.log(`Found ${truckOptions.length} truck options`);
+            
+            truckOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Reset borders
+                    truckOptions.forEach(opt => {
+                        opt.style.border = '2px solid #444';
+                    });
+                    
+                    // Highlight selected
+                    this.style.border = '2px solid #ff00ff';
+                    
+                    // Get truck type from id
+                    selectedTruckType = this.id.replace('Truck', '');
+                    
+                    // Update selected text
+                    const typeElement = document.getElementById('selectedTruckType');
+                    if (typeElement) {
+                        typeElement.textContent = selectedTruckType.toUpperCase();
+                    } else {
+                        console.error("Element with id 'selectedTruckType' not found");
+                    }
+                    
+                    // Update truck colors in selectors
+                    updateTruckColors();
+                });
+            });
+            
+            // Color selection
+            const colorOptions = document.querySelectorAll('.color-option');
+            if (colorOptions.length === 0) {
+                console.error("No color options found with class 'color-option'");
+                return;
+            }
+            
+            console.log(`Found ${colorOptions.length} color options`);
+            
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Reset borders
+                    colorOptions.forEach(opt => {
+                        opt.style.border = 'none';
+                    });
+                    
+                    // Highlight selected
+                    this.style.border = '3px solid #fff';
+                    
+                    // Get color from data attribute
+                    selectedColor = this.dataset.color;
+                    
+                    // Update truck previews with selected color
+                    updateTruckColors();
+                    
+                    // Update selected text with color name
+                    const colorNames = {
+                        '#ff00ff': 'PINK',
+                        '#00ffff': 'CYAN',
+                        '#ffff00': 'YELLOW',
+                        '#ff0000': 'RED',
+                        '#00ff00': 'GREEN',
+                        '#0000ff': 'BLUE',
+                        '#ff8800': 'ORANGE',
+                        '#8800ff': 'PURPLE'
+                    };
+                    
+                    const colorElement = document.getElementById('selectedColorName');
+                    if (colorElement) {
+                        // Update both text and color
+                        colorElement.textContent = colorNames[selectedColor] || 'CUSTOM';
+                        colorElement.style.color = selectedColor;
+                        colorElement.style.textShadow = `0 0 5px ${selectedColor}`;
+                    } else {
+                        console.error("Element with id 'selectedColorName' not found");
+                    }
+                });
+            });
+            
+            // Initialize with defaults
+            const standardTruck = document.getElementById('standardTruck');
+            if (standardTruck) {
+                standardTruck.style.border = '2px solid #ff00ff';
+            } else {
+                console.error("Element with id 'standardTruck' not found");
+            }
+            
+            updateTruckColors();
+            console.log("Truck selectors setup complete");
+            
+        } catch (error) {
+            console.error("Error setting up truck selectors:", error);
+        }
+    }
+    
+    // Update truck preview colors
+    function updateTruckColors() {
+        try {
+            const truckPreviews = document.querySelectorAll('.truck-option div div');
+            if (truckPreviews.length === 0) {
+                console.error("No truck preview elements found");
+                return;
+            }
+            
+            console.log(`Updating ${truckPreviews.length} truck previews to color ${selectedColor}`);
+            
+            truckPreviews.forEach(preview => {
+                try {
+                    preview.style.backgroundColor = selectedColor;
+                } catch (previewError) {
+                    console.error("Error setting preview color:", previewError);
+                }
+            });
+        } catch (error) {
+            console.error("Error updating truck colors:", error);
+        }
+    }
+    
+    // Create a retro synthwave sun texture
+    function createSynthwaveSunTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 1024;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Create a gradient background
+        const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGradient.addColorStop(0, 'rgba(5, 0, 15, 0.95)');    // Dark blue-purple at top
+        bgGradient.addColorStop(0.3, 'rgba(137, 0, 155, 0.8)'); // Mid-purple
+        bgGradient.addColorStop(0.6, 'rgba(255, 0, 125, 0.75)'); // Pink
+        bgGradient.addColorStop(0.8, 'rgba(255, 80, 0, 0.7)');  // Orange
+        bgGradient.addColorStop(1, 'rgba(255, 150, 0, 0.6)');   // Yellow at horizon
+        
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add a glowing sun
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height * 0.65; // Position sun 65% down the canvas
+        const sunRadius = canvas.width * 0.2;
+        
+        // Create sun gradient
+        const sunGradient = ctx.createRadialGradient(
+            centerX, centerY, sunRadius * 0.1,
+            centerX, centerY, sunRadius
+        );
+        
+        sunGradient.addColorStop(0, 'rgba(255, 255, 220, 1)');   // Bright center
+        sunGradient.addColorStop(0.2, 'rgba(255, 100, 100, 0.9)'); // Red-orange
+        sunGradient.addColorStop(0.5, 'rgba(255, 50, 50, 0.7)');  // Dark red
+        sunGradient.addColorStop(0.8, 'rgba(255, 0, 80, 0.5)');   // Dark pink
+        sunGradient.addColorStop(1, 'rgba(100, 0, 80, 0)');       // Fade to transparent
+        
+        ctx.fillStyle = sunGradient;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, sunRadius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add some horizontal gradient lines (grid)
+        const gridCount = 15;
+        const gridSpacing = canvas.height / gridCount;
+        
+        for (let i = 0; i < gridCount; i++) {
+            const y = canvas.height - gridSpacing * i;
+            
+            // Only draw if in the bottom two-thirds
+            if (i > 5) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                
+                // Make lines gradually more transparent toward the top
+                const alpha = 0.8 - (i / gridCount * 0.7);
+                ctx.strokeStyle = `rgba(255, 0, 255, ${alpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        // Add some vertical grid lines too
+        const verticalCount = 20;
+        const verticalSpacing = canvas.width / verticalCount;
+        
+        for (let i = 0; i <= verticalCount; i++) {
+            const x = verticalSpacing * i;
+            
+            // Draw vertical lines with perspective effect
+            ctx.beginPath();
+            // Start at bottom, diminish height based on distance from center
+            const perspectiveHeight = Math.abs(i - verticalCount/2) / (verticalCount/2);
+            const startHeight = canvas.height;
+            const endHeight = canvas.height * (0.4 + perspectiveHeight * 0.3);
+            
+            ctx.moveTo(x, startHeight);
+            ctx.lineTo(x, endHeight);
+            
+            // Make center lines more visible
+            const distFromCenter = Math.abs(x - canvas.width/2) / (canvas.width/2);
+            const alpha = 0.8 - distFromCenter * 0.6;
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Create a texture from the canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        return texture;
+    }
+    
+    // Start the game from intro screen
+    function startGame() {
+        // Hide intro screen
+        document.getElementById('introScreen').style.display = 'none';
+        
+        // Get player nickname from storage
+        nickname = getNickname();
+        
+        // Get truck type and color from storage
+        selectedTruckType = getTruckType();
+        selectedColor = getTruckColor();
+        
+        // Log info
+        console.log(`Monster Truck Stadium - Starting Game with ${selectedTruckType} truck (${selectedColor})`);
+        
+        // Initialize the game with the selected truck type
+        init(selectedTruckType);
+        
+        // Initialize multiplayer after game setup
+        setupMultiplayer();
+        setupChatControls();
+        
+        // Show players list
+        document.getElementById('playerList').style.display = 'block';
+        playersListVisible = true;
+        
+        // Update player list with local player
+        updatePlayersList();
+    }
+    
+    // Power-up effect creation functions
+    function createWeaponEffect(truck) {
+        // Create a pulsing weapon effect around the gun
+        const effectGeometry = new THREE.RingGeometry(1.5 * 1.5, 2.5 * 1.5, 16);
+        const effectMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff0000,
+            transparent: true,
+            opacity: 0.7,
+            side: THREE.DoubleSide
+        });
+        
+        const weaponEffect = new THREE.Mesh(effectGeometry, effectMaterial);
+        weaponEffect.position.set(0, 5.5 * 1.5, -4 * 1.5);
+        weaponEffect.rotation.x = Math.PI / 2;
+        
+        // Add pulsing light
+        const light = new THREE.PointLight(0xff0000, 1, 15);
+        light.position.set(0, 0, 0);
+        weaponEffect.add(light);
+        
+        // Store the effect for animation
+        truck.userData.weaponEffect = weaponEffect;
+        truck.userData.weaponLight = light;
+        
+        // Add to truck
+        truck.add(weaponEffect);
+    }
+    
+    function createSpeedTrail(truck) {
+        // Create speed trail effect behind the truck
+        const trailGeometry = new THREE.PlaneGeometry(15 * 1.5, 25 * 1.5);
+        const trailMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.5,
+            side: THREE.DoubleSide
+        });
+        
+        const speedTrail = new THREE.Mesh(trailGeometry, trailMaterial);
+        speedTrail.position.set(0, 1 * 1.5, 15 * 1.5);
+        speedTrail.rotation.x = Math.PI / 2;
+        
+        // Store the effect for animation
+        truck.userData.speedTrail = speedTrail;
+        
+        // Add to truck
+        truck.add(speedTrail);
+    }
+    
+    function createShieldEffect(truck) {
+        // Create a sphere shield around the truck
+        const shieldGeometry = new THREE.SphereGeometry(15 * 1.5, 16, 16);
+        const shieldMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffff00,
+            transparent: true,
+            opacity: 0.3,
+            wireframe: true
+        });
+        
+        const shield = new THREE.Mesh(shieldGeometry, shieldMaterial);
+        shield.position.set(0, 0, 0);
+        
+        // Add pulsing light
+        const light = new THREE.PointLight(0xffff00, 0.5, 20);
+        light.position.set(0, 5 * 1.5, 0);
+        shield.add(light);
+        
+        // Store the effect for animation
+        truck.userData.shieldMesh = shield;
+        truck.userData.shieldLight = light;
+        
+        // Add to truck
+        truck.add(shield);
+    }
+    
+    // Function to spawn a random power-up
+    function spawnPowerUp(x, y, z) {
+        // Get list of power-up types
+        const powerUpTypes = Object.keys(POWER_UPS);
+        
+        // Randomly select a power-up type
+        const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+        const powerUp = POWER_UPS[randomType];
+        
+        // Create power-up mesh
+        const powerUpGeometry = new THREE.BoxGeometry(5, 5, 5);
+        const powerUpMaterial = new THREE.MeshBasicMaterial({ 
+            color: powerUp.color,
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        const powerUpMesh = new THREE.Mesh(powerUpGeometry, powerUpMaterial);
+        powerUpMesh.position.set(x, y + 5, z); // Float above ground
+        
+        // Add glow effect
+        const glowGeometry = new THREE.SphereGeometry(6, 16, 16);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: powerUp.color,
+            transparent: true,
+            opacity: 0.3
+        });
+        
+        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+        powerUpMesh.add(glow);
+        
+        // Add light
+        const light = new THREE.PointLight(powerUp.color, 1, 20);
+        powerUpMesh.add(light);
+        
+        // Add power-up info to userData
+        powerUpMesh.userData = {
+            type: randomType,
+            rotationSpeed: 0.02,
+            floatSpeed: 0.05,
+            floatDirection: 1,
+            floatOffset: 0
+        };
+        
+        // Add to scene
+        scene.add(powerUpMesh);
+        
+        // Add to power-ups array for tracking
+        if (!window.powerUps) {
+            window.powerUps = [];
+        }
+        window.powerUps.push(powerUpMesh);
+        
+        return powerUpMesh;
+    }
+    
+    // This function has been removed since we no longer use the intro screen
+    
+    // Initialize the game when the window is fully loaded
+    window.addEventListener('load', function() {
+        // Check if required information exists in localStorage
+        const hasRequiredInfo = 
+            localStorage.getItem('monsterTruckNickname') && 
+            localStorage.getItem('monsterTruckType') &&
+            localStorage.getItem('monsterTruckColor');
+        
+        if (hasRequiredInfo) {
+            // Get stored values from localStorage
+            nickname = getNickname();
+            selectedTruckType = getTruckType();
+            selectedColor = getTruckColor();
+            
+            // Log info
+            console.log(`Monster Truck Stadium - Starting Game with ${selectedTruckType} truck (${selectedColor})`);
+            
+            // Initialize the game with the selected truck type
+            init(selectedTruckType);
+            
+            // Initialize multiplayer after game setup
+            setupMultiplayer();
+            setupChatControls();
+            
+            // Show players list
+            document.getElementById('playerList').style.display = 'block';
+            playersListVisible = true;
+            
+            // Update player list with local player
+            updatePlayersList();
+        } else {
+            // Show missing info screen if required information is missing
+            const missingInfoScreen = document.getElementById('missingInfoScreen');
+            missingInfoScreen.style.display = 'flex';
+            console.log("Missing required player information - showing redirect screen");
+        }
+    });
+    </script>
+</body>
+</html>

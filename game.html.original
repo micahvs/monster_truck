@@ -1,0 +1,3589 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MONSTER TRUCK STADIUM</title>
+    <link rel="icon" href="data:,">
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #120023;
+            font-family: Arial, sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            color: #fff;
+            text-align: center;
+            z-index: 100;
+            font-size: 16px;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 14px;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ffff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 18px;
+        }
+        #scoreboard {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        .scoreboard-entry {
+            margin: 5px 0;
+            padding: 3px;
+            border-radius: 3px;
+        }
+        #chatWindow {
+            position: absolute;
+            bottom: 70px;
+            left: 20px;
+            width: 300px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 14px;
+            display: none;
+            z-index: 100;
+        }
+        #chatMessages {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        #chatInput {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 1px solid #00ffff;
+            border-radius: 3px;
+        }
+        .chat-message {
+            margin: 5px 0;
+            word-wrap: break-word;
+        }
+        #serverStatus {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ff00ff;
+            font-size: 12px;
+        }
+        #playerCount {
+            margin-left: 10px;
+            color: #00ffff;
+        }
+        #loginScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        #loginForm {
+            background-color: #240046;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ff00ff;
+            text-align: center;
+            color: white;
+            width: 350px;
+        }
+        #loginForm h2 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+        #loginForm input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid #ff00ff;
+            border-radius: 5px;
+        }
+        #loginForm button {
+            background: #ff00ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 16px;
+        }
+        #colorPicker {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .color-option.selected {
+            border: 2px solid white;
+            box-shadow: 0 0 10px white;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        MONSTER TRUCK STADIUM
+    </div>
+    
+    <div id="controls">
+        <p>Up/Down: Accelerate/Brake</p>
+        <p>Left/Right: Steer</p>
+        <p>W/S: Camera Height</p>
+        <p>A/D: Camera Distance</p>
+        <p>C: Toggle Chat</p>
+        <p>CRASH STUFF!</p>
+        <p>• Drive up big ramps for air</p>
+        <p>• Crash into small blocks to destroy them</p>
+        <p>• Bounce off big towers and walls</p>
+    </div>
+    
+    <div id="score">SCORE: 0</div>
+    <div id="scoreboard"></div>
+    
+    <div id="serverStatus">
+        SERVER: <span id="connectionStatus">Connecting...</span>
+        <span id="playerCount"></span>
+    </div>
+    
+    <div id="chatWindow">
+        <div id="chatMessages"></div>
+        <input type="text" id="chatInput" placeholder="Press Enter to send, Esc to close">
+    </div>
+    
+    <div style="position: absolute; bottom: 20px; right: 20px; color: #fff; background-color: rgba(0, 0, 0, 0.6); padding: 10px; border-radius: 5px; border: 1px solid #ff00ff;">
+        <label for="musicToggle" style="cursor: pointer; user-select: none;">
+            <input type="checkbox" id="musicToggle" checked> 80s Synthwave
+        </label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="50" style="width: 100px; margin-left: 10px;">
+    </div>
+
+    <!-- Audio elements for MP3 playback -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="Micah Smith - Bubble Bath.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Crowd sound placeholders - we'll create these sounds programmatically -->
+    <div id="audioContainer"></div>
+    
+    <!-- Music selection prompt -->
+    <div id="musicPrompt" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+         background-color: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; border: 2px solid #ff00ff; 
+         color: white; text-align: center; display: none; z-index: 1000;">
+        <h3 style="color: #00ffff; margin-top: 0;">Choose Music Option</h3>
+        <button id="startMp3Btn" style="background: #ff00ff; color: white; border: none; padding: 10px 20px; 
+                margin: 10px; cursor: pointer; border-radius: 5px; display: block; width: 200px;">
+            MP3 Track
+        </button>
+        <button id="startGeneratedBtn" style="background: #00ffff; color: black; border: none; padding: 10px 20px; 
+                margin: 10px; cursor: pointer; border-radius: 5px; display: block; width: 200px;">
+            Generated Synthwave
+        </button>
+        <button id="startNoMusicBtn" style="background: #333; color: white; border: none; padding: 10px 20px; 
+                margin: 10px; cursor: pointer; border-radius: 5px; display: block; width: 200px;">
+            No Music
+        </button>
+    </div>
+    
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div id="loginForm">
+            <h2>MONSTER TRUCK STADIUM</h2>
+            <p>Enter your nickname and select your truck color:</p>
+            <input type="text" id="nicknameInput" placeholder="Your Nickname" maxlength="15">
+            
+            <div id="colorPicker">
+                <div class="color-option selected" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
+                <div class="color-option" style="background-color: #00ffff;" data-color="#00ffff"></div>
+                <div class="color-option" style="background-color: #ff8800;" data-color="#ff8800"></div>
+                <div class="color-option" style="background-color: #88ff00;" data-color="#88ff00"></div>
+                <div class="color-option" style="background-color: #ff0088;" data-color="#ff0088"></div>
+                <div class="color-option" style="background-color: #0088ff;" data-color="#0088ff"></div>
+            </div>
+            
+            <button id="joinGameBtn">JOIN GAME</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    // Add global error handler for debugging
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error("Error at line " + lineno + ": " + message);
+        alert("JavaScript error at line " + lineno + ": " + message);
+        return true;
+    };
+
+    // Improved multiplayer monster truck game with realistic driving controls
+    let scene, camera, renderer, truck;
+    let score = 0;
+    let groundMeshes = [];
+    
+    // Multiplayer variables
+    let socket = null;
+    let clientId = null;
+    let isConnected = false;
+    let playerNickname = "";
+    let playerColor = "#ff00ff";
+    let otherPlayers = {};
+    let lastPositionSent = { x: 0, y: 0, z: 0 };
+    let lastRotationSent = { y: 0 };
+    let positionSendInterval = 100; // ms
+    let lastSendTime = 0;
+    let scoreBoard = {};
+    let isChatVisible = false;
+    
+    // Initialize websocket connection
+    // Network connection manager
+    const NetworkManager = {
+        socket: null,
+        isConnected: false,
+        clientId: null,
+        connectionTimeout: null,
+        reconnectInterval: null,
+        reconnectAttempts: 0,
+        maxReconnectAttempts: 3,
+        serverCheckEndpoint: '/server.py',  // Endpoint to check if server is alive
+        wsPort: 8765,
+        maxPingLatency: 500,  // Max acceptable ping in ms
+        
+        // Initialize connection to server
+        connect: function() {
+            this.stopReconnectTimer();
+            this.isConnected = false;
+            
+            try {
+                // Update UI
+                updateConnectionStatus('Checking server...');
+                
+                // Check if server might be running using the HTTP server
+                this.checkServerAvailable()
+                    .then(available => {
+                        if (available) {
+                            this.initWebSocket();
+                        } else {
+                            console.log("Server unavailable, starting offline mode");
+                            startOfflineMode();
+                        }
+                    })
+                    .catch(err => {
+                        console.warn("Server check error:", err);
+                        startOfflineMode();
+                    });
+            } catch (error) {
+                console.error('Connection manager error:', error);
+                startOfflineMode();
+            }
+        },
+        
+        // Check if server is available
+        checkServerAvailable: function() {
+            return new Promise((resolve) => {
+                // Set a timeout for the check
+                const checkTimeout = setTimeout(() => {
+                    console.log("Server availability check timed out");
+                    resolve(false);
+                }, 2000);
+                
+                // Try to access the server HTTP endpoint
+                fetch(window.location.origin + this.serverCheckEndpoint, { method: 'HEAD' })
+                    .then(response => {
+                        clearTimeout(checkTimeout);
+                        resolve(true);  // Server responded
+                    })
+                    .catch(error => {
+                        clearTimeout(checkTimeout);
+                        console.log("Server check failed:", error);
+                        
+                        // Second check: try to connect to the socket directly
+                        this.quickSocketCheck()
+                            .then(available => {
+                                resolve(available);
+                            })
+                            .catch(() => {
+                                resolve(false);
+                            });
+                    });
+            });
+        },
+        
+        // Quick WebSocket connection check
+        quickSocketCheck: function() {
+            return new Promise((resolve, reject) => {
+                try {
+                    const hostname = window.location.hostname || 'localhost';
+                    const wsUrl = `ws://${hostname}:${this.wsPort}`;
+                    
+                    // Set a timeout
+                    const socketTimeout = setTimeout(() => {
+                        reject(new Error("WebSocket quick check timed out"));
+                    }, 1500);
+                    
+                    // Try to open a socket
+                    const testSocket = new WebSocket(wsUrl);
+                    
+                    testSocket.onopen = () => {
+                        clearTimeout(socketTimeout);
+                        testSocket.close();
+                        resolve(true);
+                    };
+                    
+                    testSocket.onerror = () => {
+                        clearTimeout(socketTimeout);
+                        resolve(false);
+                    };
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        },
+        
+        // Initialize the WebSocket connection
+        initWebSocket: function() {
+            try {
+                // Get the current hostname
+                const hostname = window.location.hostname || 'localhost';
+                const wsUrl = `ws://${hostname}:${this.wsPort}`;
+                console.log(`Connecting to: ${wsUrl}`);
+                
+                // Set a timeout to automatically go to offline mode if connection fails
+                this.connectionTimeout = setTimeout(() => {
+                    console.log("WebSocket connection timeout");
+                    this.handleConnectionFailure();
+                }, 5000);
+                
+                // Create the WebSocket
+                this.socket = new WebSocket(wsUrl);
+                
+                // Set up event handlers
+                this.socket.onopen = this.handleOpen.bind(this);
+                this.socket.onmessage = this.handleMessage.bind(this);
+                this.socket.onclose = this.handleClose.bind(this);
+                this.socket.onerror = this.handleError.bind(this);
+                
+                // Update UI
+                updateConnectionStatus('Connecting...');
+            } catch (error) {
+                console.error('WebSocket initialization error:', error);
+                this.handleConnectionFailure();
+            }
+        },
+        
+        // Handle successful connection
+        handleOpen: function(event) {
+            clearTimeout(this.connectionTimeout);
+            this.isConnected = true;
+            this.reconnectAttempts = 0;
+            updateConnectionStatus('Connected');
+            
+            // Send periodic pings to keep connection alive
+            this.startPingInterval();
+            
+            // Call the game's connection handler
+            handleSocketOpen(event);
+        },
+        
+        // Handle incoming messages
+        handleMessage: function(event) {
+            // Process the message
+            handleSocketMessage(event);
+        },
+        
+        // Handle connection close
+        handleClose: function(event) {
+            clearTimeout(this.connectionTimeout);
+            this.isConnected = false;
+            
+            // Check if this was an unexpected close
+            if (this.socket) {
+                console.log(`WebSocket closed: ${event.code} ${event.reason}`);
+                
+                // Attempt to reconnect if appropriate
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.attemptReconnect();
+                } else {
+                    console.log("Max reconnection attempts reached, going offline");
+                    updateConnectionStatus('Disconnected');
+                    handleSocketClose(event);
+                }
+            }
+        },
+        
+        // Handle connection error
+        handleError: function(event) {
+            console.error('WebSocket error:', event);
+            updateConnectionStatus('Connection Error');
+        },
+        
+        // Handle connection failure
+        handleConnectionFailure: function() {
+            this.isConnected = false;
+            updateConnectionStatus('Connection Failed');
+            this.cleanup();
+            startOfflineMode();
+        },
+        
+        // Clean up resources
+        cleanup: function() {
+            clearTimeout(this.connectionTimeout);
+            this.stopPingInterval();
+            this.stopReconnectTimer();
+            
+            // Close socket if it exists
+            if (this.socket) {
+                try {
+                    this.socket.onopen = null;
+                    this.socket.onmessage = null;
+                    this.socket.onclose = null;
+                    this.socket.onerror = null;
+                    this.socket.close();
+                } catch (e) {
+                    console.warn("Error closing socket:", e);
+                }
+                this.socket = null;
+            }
+        },
+        
+        // Attempt to reconnect
+        attemptReconnect: function() {
+            this.reconnectAttempts++;
+            updateConnectionStatus(`Reconnecting (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+            
+            // Wait before attempting to reconnect
+            const delay = Math.min(1000 * this.reconnectAttempts, 5000);
+            this.reconnectInterval = setTimeout(() => {
+                this.connect();
+            }, delay);
+        },
+        
+        // Stop the reconnect timer
+        stopReconnectTimer: function() {
+            if (this.reconnectInterval) {
+                clearTimeout(this.reconnectInterval);
+                this.reconnectInterval = null;
+            }
+        },
+        
+        // Start ping interval to keep connection alive
+        startPingInterval: function() {
+            this.pingInterval = setInterval(() => {
+                if (this.isConnected && this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    const pingData = {
+                        type: 'ping',
+                        timestamp: Date.now()
+                    };
+                    this.socket.send(JSON.stringify(pingData));
+                }
+            }, 30000); // Send ping every 30 seconds
+        },
+        
+        // Stop the ping interval
+        stopPingInterval: function() {
+            if (this.pingInterval) {
+                clearInterval(this.pingInterval);
+                this.pingInterval = null;
+            }
+        },
+        
+        // Send data to the server
+        send: function(data) {
+            if (!this.isConnected || !this.socket || this.socket.readyState !== WebSocket.OPEN) {
+                console.warn("Cannot send data - not connected");
+                return false;
+            }
+            
+            try {
+                // If data is an object, stringify it
+                const message = typeof data === 'string' ? data : JSON.stringify(data);
+                this.socket.send(message);
+                return true;
+            } catch (err) {
+                console.error("Error sending data:", err);
+                return false;
+            }
+        },
+        
+        // Disconnect from the server
+        disconnect: function() {
+            this.cleanup();
+            updateConnectionStatus('Disconnected');
+        }
+    };
+    
+    // Backward compatibility wrapper
+    function connectToServer() {
+        NetworkManager.connect();
+    }
+    
+    // Offline mode for testing without server
+    function startOfflineMode() {
+        console.log('Starting offline mode');
+        isConnected = false;
+        updateConnectionStatus('OFFLINE MODE');
+        
+        // Hide login screen
+        document.getElementById('loginScreen').style.display = 'none';
+        
+        // Initialize game
+        initializeMultiplayerGame();
+        
+        // Set a generic color and nickname
+        if (!playerNickname) {
+            playerNickname = "Offline Player";
+        }
+        
+        // Set up scoreboard with just local player
+        scoreBoard = {
+            "local": {
+                nickname: playerNickname,
+                score: 0,
+                color: playerColor
+            }
+        };
+        
+        document.getElementById('scoreboard').style.display = 'block';
+        updateScoreboard();
+    }
+    
+    function handleSocketOpen() {
+        console.log('Connected to server');
+        isConnected = true;
+        updateConnectionStatus('Connected');
+    }
+    
+    function handleSocketMessage(event) {
+        try {
+            const data = JSON.parse(event.data);
+            
+            switch (data.type) {
+                case 'register':
+                    handleRegister(data);
+                    break;
+                
+                case 'newPlayer':
+                    handleNewPlayer(data);
+                    break;
+                
+                case 'playerMove':
+                    handlePlayerMove(data);
+                    break;
+                
+                case 'playerDisconnect':
+                    handlePlayerDisconnect(data);
+                    break;
+                
+                case 'obstacleDestroyed':
+                    handleObstacleDestroyed(data);
+                    break;
+                
+                case 'scoreUpdate':
+                    handleScoreUpdate(data);
+                    break;
+                
+                case 'playerColorChange':
+                    handlePlayerColorChange(data);
+                    break;
+                
+                case 'playerNicknameChange':
+                    handlePlayerNicknameChange(data);
+                    break;
+                
+                case 'chatMessage':
+                    handleChatMessage(data);
+                    break;
+            }
+        } catch (error) {
+            console.error('Error handling message:', error);
+        }
+    }
+    
+    function handleSocketClose(event) {
+        console.log('Disconnected from server', event);
+        isConnected = false;
+        updateConnectionStatus('Disconnected');
+        
+        // Start offline mode if not already started
+        if (document.getElementById('loginScreen').style.display !== 'none') {
+            startOfflineMode();
+            return;
+        }
+        
+        // If we were already in game, just update UI to show disconnection
+        if (clientId && scoreBoard[clientId]) {
+            // Convert client ID scoreboard entry to local
+            scoreBoard["local"] = {
+                nickname: scoreBoard[clientId].nickname,
+                score: scoreBoard[clientId].score,
+                color: scoreBoard[clientId].color
+            };
+            delete scoreBoard[clientId];
+            updateScoreboard();
+        }
+        
+        // We won't try to reconnect - stay in offline mode
+        console.log("Continuing in offline mode");
+    }
+    
+    function handleSocketError(error) {
+        console.error('WebSocket error:', error);
+        updateConnectionStatus('Error');
+        // Error handling is now managed by the connection timeout and onclose handlers
+    }
+    
+    function updateConnectionStatus(status) {
+        const statusElement = document.getElementById('connectionStatus');
+        if (statusElement) {
+            statusElement.textContent = status;
+        }
+        
+        // Update player count
+        document.getElementById('playerCount').textContent = isConnected ? 
+            `Players: ${Object.keys(otherPlayers).length + 1}` : '';
+    }
+    
+    // Handle server messages
+    function handleRegister(data) {
+        clientId = data.id;
+        console.log(`Registered with server, assigned ID: ${clientId}`);
+        
+        // Show the game (hide login screen)
+        document.getElementById('loginScreen').style.display = 'none';
+        
+        // Initialize game with client ID and selected color
+        initializeMultiplayerGame();
+        
+        // Show scoreboard after login
+        document.getElementById('scoreboard').style.display = 'block';
+        
+        // Initialize scoreboard with our player
+        scoreBoard[clientId] = {
+            nickname: playerNickname,
+            score: 0,
+            color: playerColor
+        };
+        updateScoreboard();
+    }
+    
+    function handleNewPlayer(data) {
+        if (data.id === clientId) return; // Skip if it's about ourselves
+        
+        console.log(`New player joined: ${data.id}`);
+        
+        // Create a truck for the new player
+        createOtherPlayerTruck(data.id, data.position, data.rotation, data.color);
+        
+        // Update player count
+        updateConnectionStatus('Connected');
+        
+        // Add to scoreboard with data from server
+        if (!scoreBoard[data.id]) {
+            scoreBoard[data.id] = {
+                nickname: data.nickname || "Player",
+                score: data.score || 0,
+                color: data.color || "#ff00ff"
+            };
+            updateScoreboard();
+        }
+    }
+    
+    function handlePlayerMove(data) {
+        if (data.id === clientId) return; // Skip if it's about ourselves
+        
+        const player = otherPlayers[data.id];
+        if (player) {
+            // Store the target position for smooth interpolation
+            player.targetPosition = {
+                x: data.position.x,
+                y: data.position.y,
+                z: data.position.z
+            };
+            
+            player.targetRotation = {
+                y: data.rotation.y
+            };
+            
+            player.speed = data.speed || 0;
+        }
+    }
+    
+    function handlePlayerDisconnect(data) {
+        if (data.id === clientId) return; // Skip if it's about ourselves
+        
+        console.log(`Player disconnected: ${data.id}`);
+        
+        // Remove player's truck from scene
+        removeOtherPlayerTruck(data.id);
+        
+        // Remove from scoreboard
+        delete scoreBoard[data.id];
+        updateScoreboard();
+        
+        // Update player count
+        updateConnectionStatus('Connected');
+    }
+    
+    function handleObstacleDestroyed(data) {
+        // Find obstacle in our scene and destroy it if it exists
+        if (scene && scene.userData.destructibleObstacles) {
+            const obstacles = scene.userData.destructibleObstacles;
+            const obstacleIndex = parseInt(data.obstacleId);
+            
+            if (obstacles[obstacleIndex] && !obstacles[obstacleIndex].exploding) {
+                // Trigger explosion for this obstacle
+                const obstacle = obstacles[obstacleIndex];
+                obstacle.exploding = true;
+                obstacle.explosionTime = 0;
+                
+                // Hide the main box
+                obstacle.mainBox.visible = false;
+                
+                // Show the explosion pieces
+                obstacle.pieces.forEach(piece => {
+                    piece.mesh.visible = true;
+                    piece.mesh.position.set(0, 0, 0);
+                    piece.mesh.material.opacity = 1;
+                });
+                
+                // Play crowd cheers sound
+                const crowdCheers = document.getElementById('crowdCheers');
+                crowdCheers.volume = 0.3;
+                crowdCheers.currentTime = 0;
+                crowdCheers.play().catch(e => console.log("Audio play failed: ", e));
+            }
+        }
+    }
+    
+    function handleScoreUpdate(data) {
+        // Update player's score in the scoreboard
+        if (scoreBoard[data.id]) {
+            scoreBoard[data.id].score = data.score;
+            updateScoreboard();
+        }
+    }
+    
+    function handlePlayerColorChange(data) {
+        if (data.id === clientId) return; // Skip if it's about ourselves
+        
+        const player = otherPlayers[data.id];
+        if (player) {
+            // Update player's truck color
+            changeOtherPlayerColor(data.id, data.color);
+            
+            // Update scoreboard color
+            if (scoreBoard[data.id]) {
+                scoreBoard[data.id].color = data.color;
+                updateScoreboard();
+            }
+        }
+    }
+    
+    function handlePlayerNicknameChange(data) {
+        if (data.id === clientId) return; // Skip if it's about ourselves
+        
+        // Update scoreboard nickname
+        if (scoreBoard[data.id]) {
+            scoreBoard[data.id].nickname = data.nickname;
+            updateScoreboard();
+        }
+    }
+    
+    function handleChatMessage(data) {
+        // Add message to chat window
+        const chatMessages = document.getElementById('chatMessages');
+        const playerInfo = scoreBoard[data.id] || { nickname: "Unknown", color: "#ffffff" };
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = 'chat-message';
+        messageElement.innerHTML = `<span style="color:${playerInfo.color}">${playerInfo.nickname}</span>: ${data.message}`;
+        
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Show chat window if not visible
+        if (!isChatVisible) {
+            toggleChat();
+        }
+    }
+    
+    // Player management
+    function createOtherPlayerTruck(playerId, position, rotation, playerColor) {
+        // Create a simplified truck for other players
+        const otherTruck = new THREE.Group();
+        
+        // Basic chassis
+        const chassisGeometry = new THREE.BoxGeometry(4.5, 1, 8);
+        const chassisMaterial = new THREE.MeshPhongMaterial({ 
+            color: playerColor || 0xff00ff,
+            shininess: 80,
+            specular: 0xffffff
+        });
+        const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+        chassis.position.y = 0.5;
+        otherTruck.add(chassis);
+        
+        // Add neon trim to chassis
+        const trimGeometry = new THREE.BoxGeometry(4.6, 0.1, 8.1);
+        const trimMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const trim = new THREE.Mesh(trimGeometry, trimMaterial);
+        trim.position.y = 1.05;
+        otherTruck.add(trim);
+        
+        // Cab
+        const cabGeometry = new THREE.BoxGeometry(4, 1.5, 3);
+        const cabMaterial = new THREE.MeshPhongMaterial({ 
+            color: playerColor || 0xff00ff,
+            shininess: 90,
+            specular: 0xffffff
+        });
+        const cab = new THREE.Mesh(cabGeometry, cabMaterial);
+        cab.position.set(0, 1.5, -2);
+        otherTruck.add(cab);
+        
+        // Wheels
+        const wheelRadius = 1.4;
+        const wheelWidth = 1.0;
+        const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 16);
+        const wheelMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x333333,
+            shininess: 30
+        });
+        
+        // Wheel positions
+        const wheelPositions = [
+            {x: -2.2, y: wheelRadius, z: -3}, // Front left
+            {x: 2.2, y: wheelRadius, z: -3},  // Front right
+            {x: -2.2, y: wheelRadius, z: 3},  // Rear left
+            {x: 2.2, y: wheelRadius, z: 3}    // Rear right
+        ];
+        
+        // Create wheels
+        wheelPositions.forEach(pos => {
+            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            wheel.position.set(pos.x, pos.y, pos.z);
+            wheel.rotation.z = Math.PI / 2; // Correct wheel orientation
+            otherTruck.add(wheel);
+        });
+        
+        // Set initial position
+        if (position) {
+            otherTruck.position.set(position.x, position.y, position.z);
+        } else {
+            otherTruck.position.set(0, 2, 0);
+        }
+        
+        // Set initial rotation
+        if (rotation) {
+            otherTruck.rotation.y = rotation.y;
+        }
+        
+        // Add player ID text above truck (using a simple box instead of text for compatibility)
+        const playerInfo = scoreBoard[playerId] || { nickname: "Player" };
+        
+        // Create a simple floating indicator instead of text
+        const indicatorGeometry = new THREE.BoxGeometry(2, 0.5, 2);
+        const textMaterial = new THREE.MeshBasicMaterial({ color: playerColor || 0xff00ff });
+        const textMesh = new THREE.Mesh(indicatorGeometry, textMaterial);
+        textMesh.position.set(0, 4, 0);
+        otherTruck.add(textMesh);
+        
+        // Add to scene
+        scene.add(otherTruck);
+        
+        // Store reference
+        otherPlayers[playerId] = {
+            truck: otherTruck,
+            position: { x: position?.x || 0, y: position?.y || 2, z: position?.z || 0 },
+            rotation: { y: rotation?.y || 0 },
+            targetPosition: { x: position?.x || 0, y: position?.y || 2, z: position?.z || 0 },
+            targetRotation: { y: rotation?.y || 0 },
+            color: playerColor || "#ff00ff",
+            speed: 0
+        };
+    }
+    
+    function removeOtherPlayerTruck(playerId) {
+        if (otherPlayers[playerId]) {
+            scene.remove(otherPlayers[playerId].truck);
+            delete otherPlayers[playerId];
+        }
+    }
+    
+    function changeOtherPlayerColor(playerId, color) {
+        if (otherPlayers[playerId]) {
+            const player = otherPlayers[playerId];
+            const truck = player.truck;
+            
+            // Find chassis and cab
+            truck.traverse(child => {
+                if (child.isMesh && child.material && 
+                    (child.material.color.getHex() === 0xff00ff || 
+                     child.material.color.getHexString() === player.color.replace('#', ''))) {
+                    // Change the material color
+                    child.material.color.set(color);
+                }
+            });
+            
+            // Update stored color
+            player.color = color;
+        }
+    }
+    
+    function updateOtherPlayers() {
+        // Update positions of other players with smooth interpolation
+        Object.keys(otherPlayers).forEach(id => {
+            const player = otherPlayers[id];
+            if (player && player.truck && player.targetPosition) {
+                // Position interpolation
+                player.truck.position.x += (player.targetPosition.x - player.truck.position.x) * 0.1;
+                player.truck.position.y += (player.targetPosition.y - player.truck.position.y) * 0.1;
+                player.truck.position.z += (player.targetPosition.z - player.truck.position.z) * 0.1;
+                
+                // Rotation interpolation
+                const rotDiff = player.targetRotation.y - player.truck.rotation.y;
+                
+                // Handle the shortest path for rotation (wrapping around 2π)
+                let rotStep;
+                if (Math.abs(rotDiff) > Math.PI) {
+                    if (player.targetRotation.y > player.truck.rotation.y) {
+                        rotStep = (rotDiff - 2 * Math.PI) * 0.1;
+                    } else {
+                        rotStep = (rotDiff + 2 * Math.PI) * 0.1;
+                    }
+                } else {
+                    rotStep = rotDiff * 0.1;
+                }
+                
+                player.truck.rotation.y += rotStep;
+                
+                // Animate wheels if the truck is moving
+                if (Math.abs(player.speed) > 0.1) {
+                    player.truck.children.forEach(child => {
+                        if (child.isMesh && child.geometry.type === 'CylinderGeometry' && 
+                            child.position.y < 2) {
+                            // This is a wheel, rotate it based on speed
+                            child.rotation.x += player.speed * 0.05;
+                        }
+                    });
+                }
+            }
+        });
+    }
+    
+    // Game state management
+    function sendPosition() {
+        if (!truck) return;
+        
+        const now = Date.now();
+        // Limit how often we send position updates
+        if (now - lastSendTime < positionSendInterval) return;
+        
+        // Only send update if position has changed significantly
+        const position = {
+            x: truck.position.x,
+            y: truck.position.y,
+            z: truck.position.z
+        };
+        
+        const rotation = {
+            y: truck.rotation.y
+        };
+        
+        const posChanged = Math.abs(position.x - lastPositionSent.x) > 0.1 ||
+                         Math.abs(position.y - lastPositionSent.y) > 0.1 ||
+                         Math.abs(position.z - lastPositionSent.z) > 0.1;
+                         
+        const rotChanged = Math.abs(rotation.y - lastRotationSent.y) > 0.05;
+        
+        if (posChanged || rotChanged) {
+            // In online mode, send to server
+            if (isConnected && clientId) {
+                NetworkManager.send({
+                    type: 'updatePosition',
+                    position: position,
+                    rotation: rotation,
+                    speed: truck.userData.speed
+                });
+            }
+            
+            // Update last sent values
+            lastPositionSent = position;
+            lastRotationSent = rotation;
+            lastSendTime = now;
+        }
+    }
+    
+    function sendObstacleDestroyed(obstacleId) {
+        // In offline mode, we don't need to do anything special
+        if (!isConnected) return;
+        
+        if (!clientId) return;
+        
+        NetworkManager.send({
+            type: 'obstacleDestroyed',
+            obstacleId: obstacleId
+        });
+    }
+    
+    function sendScoreUpdate() {
+        if (!isConnected) {
+            // Update local scoreboard in offline mode
+            if (scoreBoard["local"]) {
+                scoreBoard["local"].score = score;
+                updateScoreboard();
+            }
+            return;
+        }
+        
+        if (!clientId) return;
+        
+        NetworkManager.send({
+            type: 'scoreUpdate',
+            score: score
+        });
+        
+        // Update local scoreboard
+        if (scoreBoard[clientId]) {
+            scoreBoard[clientId].score = score;
+            updateScoreboard();
+        }
+    }
+    
+    function sendColorChange(color) {
+        if (!isConnected) {
+            // Update local color in offline mode
+            if (scoreBoard["local"]) {
+                scoreBoard["local"].color = color;
+                updateScoreboard();
+            }
+            return;
+        }
+        
+        if (!clientId) return;
+        
+        NetworkManager.send({
+            type: 'setColor',
+            color: color
+        });
+    }
+    
+    function sendChatMessage(message) {
+        if (!message.trim()) return;
+        
+        if (!isConnected) {
+            // In offline mode, just add message to chat
+            const chatMessages = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'chat-message';
+            messageElement.innerHTML = `<span style="color:${playerColor}">${playerNickname}</span>: ${message}`;
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return;
+        }
+        
+        if (!clientId) return;
+        
+        NetworkManager.send({
+            type: 'chatMessage',
+            message: message
+        });
+    }
+    
+    // UI Management
+    function updateScoreboard() {
+        const scoreboardElement = document.getElementById('scoreboard');
+        if (!scoreboardElement) return;
+        
+        // Sort players by score
+        const sortedPlayers = Object.entries(scoreBoard)
+            .map(([id, data]) => ({ id, ...data }))
+            .sort((a, b) => b.score - a.score);
+        
+        // Clear scoreboard
+        scoreboardElement.innerHTML = '<h3 style="margin-top: 0; color: #00ffff;">Scoreboard</h3>';
+        
+        // Add player entries
+        sortedPlayers.forEach(player => {
+            const entry = document.createElement('div');
+            entry.className = 'scoreboard-entry';
+            entry.style.color = player.color;
+            entry.style.fontWeight = player.id === clientId ? 'bold' : 'normal';
+            entry.textContent = `${player.nickname}: ${player.score}`;
+            
+            if (player.id === clientId) {
+                entry.style.textShadow = '0 0 5px white';
+            }
+            
+            scoreboardElement.appendChild(entry);
+        });
+    }
+    
+    function toggleChat() {
+        const chatWindow = document.getElementById('chatWindow');
+        isChatVisible = !isChatVisible;
+        chatWindow.style.display = isChatVisible ? 'block' : 'none';
+        
+        if (isChatVisible) {
+            // Focus chat input when opening
+            document.getElementById('chatInput').focus();
+        }
+    }
+    
+    function handleChatKeydown(event) {
+        if (event.key === 'Enter') {
+            // Send message
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                sendChatMessage(message);
+                input.value = '';
+            }
+        } else if (event.key === 'Escape') {
+            // Close chat window
+            toggleChat();
+        }
+    }
+    
+    // Setup login screen
+    function setupLogin() {
+        const colorOptions = document.querySelectorAll('.color-option');
+        const joinBtn = document.getElementById('joinGameBtn');
+        const nicknameInput = document.getElementById('nicknameInput');
+        
+        // Handle color selection
+        colorOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                colorOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Store selected color
+                playerColor = this.getAttribute('data-color');
+            });
+        });
+        
+        // Handle join button click
+        joinBtn.addEventListener('click', function() {
+            const nickname = nicknameInput.value.trim();
+            
+            if (nickname) {
+                playerNickname = nickname;
+                connectToServer();
+                
+                // Send nickname to server once connected
+                const checkConnection = setInterval(() => {
+                    if (isConnected && clientId) {
+                        NetworkManager.send({
+                            type: 'setNickname',
+                            nickname: nickname
+                        });
+                        clearInterval(checkConnection);
+                    }
+                }, 300);
+            } else {
+                alert('Please enter a nickname');
+            }
+        });
+        
+        // Handle Enter key in nickname input
+        nicknameInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                joinBtn.click();
+            }
+        });
+    }
+    
+    // Multiplayer game initialization
+    function initializeMultiplayerGame() {
+        // Initialize the game
+        init();
+        
+        // Add extra event listeners for multiplayer
+        document.addEventListener('keydown', function(event) {
+            if (event.key.toLowerCase() === 'c' && !event.repeat) {
+                toggleChat();
+            }
+        });
+        
+        const chatInput = document.getElementById('chatInput');
+        chatInput.addEventListener('keydown', handleChatKeydown);
+        
+        // Set player's truck color
+        updateTruckColor(playerColor);
+    }
+    
+    function updateTruckColor(color) {
+        if (!truck) return;
+        
+        // Update chassis and cab color
+        truck.traverse(child => {
+            if (child.isMesh && child.material && 
+                (child.material.color.getHex() === 0xff00ff || 
+                 child.material.color.getHexString() === playerColor.replace('#', ''))) {
+                // Change the material color
+                child.material.color.set(color);
+            }
+        });
+        
+        // Update stored color
+        playerColor = color;
+    }
+    
+    // Set up the login screen
+    setupLogin();
+    
+    // Add offline mode button
+    const loginForm = document.getElementById('loginForm');
+    const offlineBtn = document.createElement('button');
+    offlineBtn.textContent = 'PLAY OFFLINE';
+    offlineBtn.style.backgroundColor = '#333';
+    offlineBtn.style.marginTop = '10px';
+    
+    offlineBtn.addEventListener('click', function() {
+        playerNickname = document.getElementById('nicknameInput').value.trim() || "Offline Player";
+        startOfflineMode();
+    });
+    
+    loginForm.appendChild(offlineBtn);
+    
+    // Control variables
+    const keys = {};
+    const truckSpeed = {
+        x: 0,
+        z: 0
+    };
+    
+    // Camera settings for larger arena
+    const cameraSettings = {
+        height: 30,
+        distance: 50,
+        angle: 0.3
+    };
+    
+    function init() {
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x120023); // Dark purple background
+        
+        // Create camera with angled view
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 20, 30); // Set initial position directly
+        
+        // Create renderer with quality settings
+        const settings = GraphicsSettings.get();
+        renderer = new THREE.WebGLRenderer({ 
+            antialias: settings.antialiasing,
+            precision: 'mediump', // Use medium precision for better performance
+            powerPreference: 'high-performance'
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1); // Limit pixel ratio
+        
+        // Apply quality settings
+        renderer.shadowMap.enabled = settings.shadowsEnabled;
+        renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+        
+        // Append the renderer to the DOM
+        document.body.appendChild(renderer.domElement);
+        
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xff00ff, 0.8);
+        directionalLight.position.set(0, 50, 20);
+        scene.add(directionalLight);
+        
+        // Create ground with grid
+        createGround();
+        
+        // Create obstacles
+        createObstacles();
+        
+        // Create boundary walls
+        createBoundary();
+        
+        // Create the monster truck
+        createTruck();
+        
+        // Set up controls
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+        
+        // Handle window resize
+        window.addEventListener('resize', onWindowResize);
+        
+        // Set up music controls
+        setupMusic();
+        
+        // Start animation loop
+        animate();
+    }
+    
+    // Robust audio system for all game sounds
+    const AudioSystem = {
+        // Music variables
+        music: {
+            context: null,
+            gainNode: null,
+            oscillators: [],
+            playing: false,
+            mode: 'none', // 'mp3', 'generated', or 'none'
+            volume: 0.5
+        },
+        
+        // Sound effects
+        sfx: {
+            // Programmatically generated sound effects
+            crowdCheers: null,
+            crowdOohs: null,
+            engineSound: null
+        },
+        
+        // Initialize the audio system
+        init: function() {
+            // Try to set up Web Audio API
+            try {
+                // Check if Web Audio API is supported
+                if (window.AudioContext || window.webkitAudioContext) {
+                    this.music.context = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Create gain node for volume control
+                    this.music.gainNode = this.music.context.createGain();
+                    this.music.gainNode.gain.value = this.music.volume;
+                    this.music.gainNode.connect(this.music.context.destination);
+                    
+                    // Create sound effects
+                    this.createSoundEffects();
+                    
+                    console.log("Audio system initialized successfully");
+                    return true;
+                } else {
+                    console.warn("Web Audio API not supported in this browser");
+                    return false;
+                }
+            } catch (err) {
+                console.error("Error initializing audio system:", err);
+                return false;
+            }
+        },
+        
+        // Create programmatic sound effects
+        createSoundEffects: function() {
+            if (!this.music.context) return;
+            
+            // Create container for dynamic audio elements
+            const audioContainer = document.getElementById('audioContainer');
+            
+            // Create crowd cheers sound (using HTML5 Audio as fallback)
+            const crowdCheers = document.createElement('audio');
+            crowdCheers.id = 'crowdCheers';
+            audioContainer.appendChild(crowdCheers);
+            
+            // Create crowd oohs sound
+            const crowdOohs = document.createElement('audio');
+            crowdOohs.id = 'crowdOohs';
+            audioContainer.appendChild(crowdOohs);
+            
+            // Store references
+            this.sfx.crowdCheers = crowdCheers;
+            this.sfx.crowdOohs = crowdOohs;
+        },
+        
+        // Play a sound effect safely
+        playSfx: function(name, volume = 0.3) {
+            try {
+                if (this.sfx[name]) {
+                    const sound = this.sfx[name];
+                    sound.volume = volume;
+                    
+                    // Reset playback position
+                    if (sound.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+                        sound.currentTime = 0;
+                    }
+                    
+                    // Play with promise handling for modern browsers
+                    const playPromise = sound.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(err => {
+                            console.warn(`Failed to play ${name} sound:`, err);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn(`Error playing ${name} sound:`, err);
+            }
+        },
+        
+        // Generate crowd cheers sound (using oscillators)
+        generateCrowdCheer: function() {
+            if (!this.music.context) return;
+            
+            try {
+                const cheerDuration = 1.5;
+                const ctx = this.music.context;
+                const mainGain = ctx.createGain();
+                mainGain.gain.value = 0;
+                mainGain.connect(ctx.destination);
+                
+                // Envelope
+                mainGain.gain.setValueAtTime(0, ctx.currentTime);
+                mainGain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.2);
+                mainGain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.5);
+                mainGain.gain.linearRampToValueAtTime(0, ctx.currentTime + cheerDuration);
+                
+                // Create multiple oscillators for a rich crowd sound
+                const freqs = [300, 400, 600, 800, 1200];
+                
+                freqs.forEach(freq => {
+                    const osc = ctx.createOscillator();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    
+                    // Add slight random detuning
+                    osc.detune.value = Math.random() * 30 - 15;
+                    
+                    // Connect through the gain node
+                    osc.connect(mainGain);
+                    
+                    // Start and schedule stop
+                    osc.start();
+                    osc.stop(ctx.currentTime + cheerDuration);
+                });
+                
+                return true;
+            } catch (err) {
+                console.warn("Error generating crowd cheer:", err);
+                return false;
+            }
+        }
+    };
+    
+    // For backward compatibility
+    let audioContext = null;
+    let gainNode = null;
+    let oscillator = null;
+    let musicPlaying = false;
+    let musicMode = 'none'; // 'mp3', 'generated', or 'none'
+    
+    function setupMusic() {
+        const musicToggle = document.getElementById('musicToggle');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const musicPrompt = document.getElementById('musicPrompt');
+        const startMp3Btn = document.getElementById('startMp3Btn');
+        const startGeneratedBtn = document.getElementById('startGeneratedBtn');
+        const startNoMusicBtn = document.getElementById('startNoMusicBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        
+        // Set toggle to not checked initially
+        musicToggle.checked = false;
+        
+        // Set initial volume
+        bgMusic.volume = volumeSlider.value / 100;
+        
+        // Make sure all DOM elements exist before showing prompt
+        if (musicPrompt && startMp3Btn && startGeneratedBtn && startNoMusicBtn) {
+            // Show music prompt after a short delay
+            setTimeout(() => {
+                musicPrompt.style.display = 'block';
+            }, 500);
+        } else {
+            console.error("Missing music UI elements");
+        }
+        
+        // Safely set up event listeners
+        if (startMp3Btn) {
+            startMp3Btn.addEventListener('click', () => {
+                if (musicPrompt) musicPrompt.style.display = 'none';
+                musicMode = 'mp3';
+                startMp3Music();
+                if (musicToggle) musicToggle.checked = true;
+            });
+        }
+        
+        if (startGeneratedBtn) {
+            startGeneratedBtn.addEventListener('click', () => {
+                if (musicPrompt) musicPrompt.style.display = 'none';
+                musicMode = 'generated';
+                startSynthMusic();
+                if (musicToggle) musicToggle.checked = true;
+            });
+        }
+        
+        if (startNoMusicBtn) {
+            startNoMusicBtn.addEventListener('click', () => {
+                if (musicPrompt) musicPrompt.style.display = 'none';
+                musicMode = 'none';
+                if (musicToggle) musicToggle.checked = false;
+            });
+        }
+        
+        // Toggle music on/off
+        if (musicToggle) {
+            musicToggle.addEventListener('change', () => {
+                if (musicToggle.checked) {
+                    // Resume current music mode or default to MP3
+                    if (musicMode === 'generated') {
+                        if (!musicPlaying) startSynthMusic();
+                    } else {
+                        // Default to MP3 if no mode selected yet
+                        if (musicMode === 'none') musicMode = 'mp3';
+                        startMp3Music();
+                    }
+                } else {
+                    // Stop all music
+                    stopAllMusic();
+                }
+            });
+            
+            // Add music type selector - right-click toggles between MP3 and generated
+            musicToggle.addEventListener('contextmenu', (e) => {
+                e.preventDefault(); // Prevent context menu
+                
+                if (musicToggle.checked) {
+                    stopAllMusic();
+                    
+                    // Toggle between MP3 and generated
+                    if (musicMode === 'mp3') {
+                        musicMode = 'generated';
+                        startSynthMusic();
+                    } else {
+                        musicMode = 'mp3';
+                        startMp3Music();
+                    }
+                }
+                
+                return false;
+            });
+        }
+        
+        // Adjust volume for both audio systems
+        if (volumeSlider && bgMusic) {
+            volumeSlider.addEventListener('input', () => {
+                const volume = volumeSlider.value / 100;
+                
+                // For Web Audio API
+                if (gainNode) {
+                    gainNode.gain.value = volume;
+                }
+                
+                // For HTML5 Audio
+                bgMusic.volume = volume;
+            });
+        }
+    }
+    
+    function startMp3Music() {
+        // Stop any generated music first
+        stopSynthMusic();
+        
+        // Play the MP3
+        const bgMusic = document.getElementById('bgMusic');
+        
+        if (!bgMusic) {
+            console.error("MP3 audio element not found");
+            musicMode = 'none';
+            return;
+        }
+        
+        // Make sure the audio file exists and is loaded
+        if (!bgMusic.src || bgMusic.src === '') {
+            console.error("No MP3 source specified");
+            musicMode = 'none';
+            return;
+        }
+        
+        // Reset audio to beginning
+        try {
+            bgMusic.currentTime = 0;
+        } catch (e) {
+            console.warn("Could not reset audio position:", e);
+        }
+        
+        // Set volume from slider
+        const volumeSlider = document.getElementById('volumeSlider');
+        if (volumeSlider) {
+            bgMusic.volume = volumeSlider.value / 100;
+        } else {
+            bgMusic.volume = 0.5; // Default
+        }
+        
+        // Try to play with comprehensive error handling
+        try {
+            // Add event listener for errors
+            bgMusic.onerror = function(e) {
+                console.error("Audio error event:", e);
+                musicMode = 'none';
+            };
+            
+            // Try to play
+            const playPromise = bgMusic.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("MP3 playback failed:", error);
+                    
+                    // If MP3 fails, just turn off music rather than fallback
+                    musicMode = 'none';
+                    
+                    // Update UI
+                    const musicToggle = document.getElementById('musicToggle');
+                    if (musicToggle) {
+                        musicToggle.checked = false;
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("MP3 playback error:", e);
+            musicMode = 'none';
+        }
+    }
+    
+    function stopAllMusic() {
+        // Stop MP3
+        const bgMusic = document.getElementById('bgMusic');
+        if (bgMusic) {
+            try {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            } catch (e) {
+                console.error("Error stopping MP3:", e);
+            }
+        }
+        
+        // Stop generated music
+        stopSynthMusic();
+    }
+    
+    // Generate synthwave-like music programmatically using Web Audio API
+    function startSynthMusic() {
+        try {
+            // Check if Web Audio API is supported
+            if (!window.AudioContext && !window.webkitAudioContext) {
+                console.log("Web Audio API not supported, falling back to MP3");
+                startMp3Music();
+                return;
+            }
+            
+            // Create audio context if it doesn't exist
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Create gain node for volume control
+                    gainNode = audioContext.createGain();
+                    gainNode.gain.value = document.getElementById('volumeSlider').value / 100;
+                    gainNode.connect(audioContext.destination);
+                } catch (err) {
+                    console.error("Error initializing Audio Context:", err);
+                    startMp3Music();
+                    return;
+                }
+            }
+            
+            // Create synthwave-like bass
+            createSynthBassPart();
+            
+            // Create synthwave-like lead arpeggio
+            setTimeout(() => {
+                createSynthLeadPart();
+            }, 1000);
+            
+            musicPlaying = true;
+        } catch (e) {
+            console.error("Web Audio API error:", e);
+            // Fallback to MP3
+            startMp3Music();
+        }
+    }
+    
+    function createSynthBassPart() {
+        // Base notes for synthwave
+        const notes = [
+            { note: 55, duration: 0.5 }, // G
+            { note: 55, duration: 0.5 },
+            { note: 62, duration: 0.5 }, // D
+            { note: 55, duration: 0.5 },
+            { note: 58, duration: 0.5 }, // A#
+            { note: 55, duration: 0.5 },
+            { note: 53, duration: 0.5 }, // F
+            { note: 55, duration: 0.5 }
+        ];
+        
+        let currentIndex = 0;
+        
+        function playNextNote() {
+            if (!musicPlaying) return;
+            
+            const note = notes[currentIndex];
+            const osc = audioContext.createOscillator();
+            const noteGain = audioContext.createGain();
+            
+            // Set up oscillator
+            osc.type = 'sawtooth';
+            osc.frequency.value = note.note;
+            
+            // Set up envelope
+            noteGain.gain.value = 0;
+            noteGain.gain.setValueAtTime(0, audioContext.currentTime);
+            noteGain.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+            noteGain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.2);
+            noteGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + note.duration);
+            
+            // Connect nodes
+            osc.connect(noteGain);
+            noteGain.connect(gainNode);
+            
+            // Play note
+            osc.start();
+            osc.stop(audioContext.currentTime + note.duration);
+            
+            // Schedule next note
+            currentIndex = (currentIndex + 1) % notes.length;
+            setTimeout(playNextNote, note.duration * 1000);
+        }
+        
+        // Start playing
+        playNextNote();
+    }
+    
+    function createSynthLeadPart() {
+        // Lead notes for synthwave arpeggio
+        const notes = [
+            { note: 440, duration: 0.125 }, // A4
+            { note: 554, duration: 0.125 }, // C#5
+            { note: 659, duration: 0.125 }, // E5
+            { note: 880, duration: 0.125 }, // A5
+            { note: 659, duration: 0.125 }, // E5
+            { note: 554, duration: 0.125 }, // C#5
+            { note: 440, duration: 0.125 }, // A4
+            { note: 329, duration: 0.125 }  // E4
+        ];
+        
+        let currentIndex = 0;
+        
+        function playNextNote() {
+            if (!musicPlaying) return;
+            
+            const note = notes[currentIndex];
+            const osc = audioContext.createOscillator();
+            const noteGain = audioContext.createGain();
+            
+            // Set up oscillator
+            osc.type = 'square';
+            osc.frequency.value = note.note;
+            
+            // Set up envelope
+            noteGain.gain.value = 0;
+            noteGain.gain.setValueAtTime(0, audioContext.currentTime);
+            noteGain.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+            noteGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + note.duration);
+            
+            // Connect nodes
+            osc.connect(noteGain);
+            noteGain.connect(gainNode);
+            
+            // Play note
+            osc.start();
+            osc.stop(audioContext.currentTime + note.duration);
+            
+            // Schedule next note
+            currentIndex = (currentIndex + 1) % notes.length;
+            setTimeout(playNextNote, note.duration * 1000);
+        }
+        
+        // Start playing
+        playNextNote();
+    }
+    
+    function stopSynthMusic() {
+        musicPlaying = false;
+        
+        // Clean up audio context if needed
+        if (audioContext) {
+            try {
+                // In some browsers, we can close the audio context
+                if (audioContext.state !== 'closed' && typeof audioContext.close === 'function') {
+                    audioContext.close().catch(err => console.error("Error closing audio context:", err));
+                }
+            } catch (err) {
+                console.error("Error cleaning up audio:", err);
+            }
+            
+            // Even if we can't close it, we stop using it
+            audioContext = null;
+            gainNode = null;
+        }
+    }
+    
+    function createGround() {
+        // Create a much larger flat ground
+        const groundSize = 800;
+        
+        // Get quality settings
+        const settings = GraphicsSettings.get();
+        
+        // Create ground with detail based on quality
+        const segments = settings.terrainDetail;
+        const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize, segments, segments);
+        
+        // Use simpler material on low quality
+        const groundMaterial = settings.texturesEnabled ? 
+            new THREE.MeshStandardMaterial({ 
+                color: 0x553322, // Brown dirt color
+                roughness: 0.8,
+                metalness: 0.2,
+                side: THREE.DoubleSide
+            }) : 
+            new THREE.MeshBasicMaterial({
+                color: 0x553322,
+                side: THREE.DoubleSide
+            });
+        
+        // Add some randomness to vertices but only on medium or high quality
+        if (settings.quality !== 'low') {
+            const skipFactor = settings.quality === 'high' ? 6 : 12; // Sample rate
+            const vertices = groundGeometry.attributes.position.array;
+            for (let i = 0; i < vertices.length; i += skipFactor) {
+                // Skip the edges to keep a flat border
+                const xPos = vertices[i];
+                const zPos = vertices[i+2];
+                const distFromCenter = Math.sqrt(xPos * xPos + zPos * zPos);
+                if (distFromCenter < groundSize * 0.45) {
+                    // Add small height variations
+                    vertices[i+1] = Math.random() * 0.8;
+                }
+            }
+            groundGeometry.attributes.position.needsUpdate = true;
+            groundGeometry.computeVertexNormals();
+        }
+        
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+        groundMeshes.push(ground);
+        
+        // Only add grass patches on medium/high quality
+        if (settings.quality !== 'low') {
+            // Add fewer grass patches - solid color for performance
+            const grassMaterial = new THREE.MeshBasicMaterial({
+                color: 0x228833, // Green grass color
+                transparent: true,
+                opacity: 0.9,
+                side: THREE.DoubleSide
+            });
+            
+            // Scale number based on quality
+            const numPatches = settings.quality === 'high' ? 30 : 15;
+            
+            for (let i = 0; i < numPatches; i++) {
+                const patchSize = 30 + Math.random() * 50; // Larger patches, fewer of them
+                const patchGeometry = new THREE.PlaneGeometry(patchSize, patchSize, 1, 1); // Minimal geometry
+                
+                const patch = new THREE.Mesh(patchGeometry, grassMaterial);
+                patch.rotation.x = -Math.PI / 2;
+                patch.position.set(
+                    (Math.random() - 0.5) * groundSize * 0.8,
+                    0.2,
+                    (Math.random() - 0.5) * groundSize * 0.8
+                );
+                scene.add(patch);
+            }
+        }
+    }
+    
+    function createObstacles() {
+        // Store destructible obstacles
+        const destructibleObstacles = [];
+        // Store big blocks that you bounce off of
+        const bigBlocks = [];
+        
+        // Create larger ramps that can be driven up
+        const ramps = [
+            { pos: [100, 5, 150], size: [50, 10, 30], angle: -Math.PI / 15 },
+            { pos: [-120, 8, -180], size: [60, 16, 40], angle: -Math.PI / 12 },
+            { pos: [-50, 6, 200], size: [45, 12, 35], angle: -Math.PI / 14 },
+            { pos: [200, 7, -100], size: [55, 14, 38], angle: -Math.PI / 13 }
+        ];
+        
+        // Create reusable geometries and materials
+        const rampMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x00ffff,
+            shininess: 30,
+            specular: 0xffffff
+        });
+        
+        const edgeMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+        
+        // Add all ramps
+        ramps.forEach(rampData => {
+            const rampGeometry = new THREE.BoxGeometry(rampData.size[0], rampData.size[1], rampData.size[2]);
+            const ramp = new THREE.Mesh(rampGeometry, rampMaterial);
+            ramp.position.set(rampData.pos[0], rampData.pos[1] / 2, rampData.pos[2]);
+            ramp.rotation.x = rampData.angle;
+            scene.add(ramp);
+            groundMeshes.push(ramp);
+            
+            // Add neon edge to ramp
+            const edgeGeometry = new THREE.BoxGeometry(rampData.size[0] + 0.5, 0.8, rampData.size[2] + 0.5);
+            const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+            // Position just above the ramp
+            edge.position.set(
+                rampData.pos[0], 
+                rampData.pos[1] / 2 + rampData.size[1] / 2 + 0.4, 
+                rampData.pos[2]
+            );
+            edge.rotation.x = rampData.angle;
+            scene.add(edge);
+        });
+        
+        // Create reusable materials for obstacles
+        const boxMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff33cc,
+            shininess: 50,
+            specular: 0xffffff
+        });
+        
+        // Reusable piece material
+        const pieceMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff33cc,
+            shininess: 50, 
+            transparent: true,
+            opacity: 1
+        });
+        
+        // Reusable geometries for pieces
+        const pieceGeometries = [];
+        for (let s = 0; s < 5; s++) { // Different sizes
+            pieceGeometries.push(new THREE.BoxGeometry(s+1, s+1, s+1));
+        }
+        
+        // Set obstacle count based on quality settings
+        const settings = GraphicsSettings.get();
+        const numObstacles = settings.maxObstacles;
+        for (let i = 0; i < numObstacles; i++) {
+            const size = 3 + Math.random() * 5;
+            const x = (Math.random() - 0.5) * 700;
+            const z = (Math.random() - 0.5) * 700;
+            
+            if (Math.abs(x) > 50 || Math.abs(z) > 50) { // Don't place too close to spawn
+                // Create a group to hold the obstacle pieces
+                const obstacleGroup = new THREE.Group();
+                obstacleGroup.position.set(x, size/2, z);
+                
+                // Create the main box
+                const boxGeometry = new THREE.BoxGeometry(size, size, size);
+                const box = new THREE.Mesh(boxGeometry, boxMaterial);
+                obstacleGroup.add(box);
+                
+                // Store box pieces for explosion
+                const pieces = [];
+                const pieceSize = size / 2;
+                
+                // Create just 4 pieces instead of 8 for better performance
+                for (let p = 0; p < 4; p++) {
+                    // Get random directions
+                    const px = Math.random() > 0.5 ? 1 : -1;
+                    const py = Math.random() > 0.5 ? 1 : -1;
+                    const pz = Math.random() > 0.5 ? 1 : -1;
+                    
+                    // Use a cached geometry
+                    const pieceGeometryIndex = Math.min(4, Math.floor(pieceSize)) - 1;
+                    const piece = new THREE.Mesh(
+                        pieceGeometries[pieceGeometryIndex >= 0 ? pieceGeometryIndex : 0], 
+                        pieceMaterial
+                    );
+                    
+                    piece.position.set(
+                        px * pieceSize / 2,
+                        py * pieceSize / 2,
+                        pz * pieceSize / 2
+                    );
+                    piece.visible = false; // Hidden initially
+                    obstacleGroup.add(piece);
+                    
+                    pieces.push({
+                        mesh: piece,
+                        direction: new THREE.Vector3(px, py, pz),
+                        rotationAxis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize(),
+                        rotationSpeed: Math.random() * 0.2
+                    });
+                }
+                
+                scene.add(obstacleGroup);
+                
+                // Store obstacle data for collision detection
+                destructibleObstacles.push({
+                    group: obstacleGroup,
+                    mainBox: box,
+                    pieces: pieces,
+                    size: size,
+                    exploding: false,
+                    explosionTime: 0,
+                    explosionDuration: 30 // Reduced animation time
+                });
+            }
+        }
+        
+        // Make big blocks 75% of the height of the outer boundary (which is 30 units)
+        const boundaryHeight = 30;
+        const blockHeight = boundaryHeight * 0.75; // 75% of boundary height
+        
+        // Add 4 large blocks to bounce off of
+        const blockPositions = [
+            [200, 120], [-200, 150], [180, -220], [-250, -180]
+        ];
+        
+        blockPositions.forEach(pos => {
+            const blockSize = 30 + Math.random() * 20;
+            
+            // Create the big block
+            const blockGeometry = new THREE.BoxGeometry(blockSize, blockHeight, blockSize);
+            const blockMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x00ffff,
+                shininess: 80,
+                emissive: 0x003333
+            });
+            const block = new THREE.Mesh(blockGeometry, blockMaterial);
+            block.position.set(pos[0], blockHeight/2, pos[1]);
+            scene.add(block);
+            
+            // Add neon trim
+            const trimGeometry = new THREE.BoxGeometry(blockSize + 1, 1, blockSize + 1);
+            const trimMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+            const topTrim = new THREE.Mesh(trimGeometry, trimMaterial);
+            topTrim.position.y = blockHeight/2 + 0.5;
+            block.add(topTrim);
+            
+            const bottomTrim = new THREE.Mesh(trimGeometry, trimMaterial);
+            bottomTrim.position.y = -blockHeight/2 - 0.5;
+            block.add(bottomTrim);
+            
+            // Store big block for collision detection
+            bigBlocks.push({
+                mesh: block,
+                size: blockSize,
+                position: new THREE.Vector3(pos[0], blockHeight/2, pos[1])
+            });
+            
+            groundMeshes.push(block);
+        });
+        
+        // Add to scene userData for later reference
+        scene.userData.destructibleObstacles = destructibleObstacles;
+        scene.userData.bigBlocks = bigBlocks;
+    }
+    
+    function createBoundary() {
+        // Create a boundary around the game field (4x bigger)
+        const boundarySize = 720; // Slightly smaller than the ground
+        const wallHeight = 30;
+        const wallThickness = 5;
+        
+        // Define the boundary material with gradient effect
+        const boundaryMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff00ff,
+            transparent: true,
+            opacity: 0.5,
+            emissive: 0x330033,
+            shininess: 100
+        });
+        
+        // Create each wall segment
+        const walls = [
+            // North wall
+            { pos: [0, wallHeight/2, -boundarySize/2], size: [boundarySize, wallHeight, wallThickness] },
+            // South wall
+            { pos: [0, wallHeight/2, boundarySize/2], size: [boundarySize, wallHeight, wallThickness] },
+            // East wall
+            { pos: [boundarySize/2, wallHeight/2, 0], size: [wallThickness, wallHeight, boundarySize] },
+            // West wall
+            { pos: [-boundarySize/2, wallHeight/2, 0], size: [wallThickness, wallHeight, boundarySize] }
+        ];
+        
+        // Create all walls
+        walls.forEach(wall => {
+            const geometry = new THREE.BoxGeometry(wall.size[0], wall.size[1], wall.size[2]);
+            const mesh = new THREE.Mesh(geometry, boundaryMaterial);
+            mesh.position.set(wall.pos[0], wall.pos[1], wall.pos[2]);
+            scene.add(mesh);
+            groundMeshes.push(mesh);
+            
+            // Add glowing edge at the top of each wall
+            const edgeGeometry = new THREE.BoxGeometry(wall.size[0] + 0.5, 0.5, wall.size[2] + 0.5);
+            const edgeMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.8
+            });
+            const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+            edge.position.set(wall.pos[0], wallHeight, wall.pos[2]);
+            scene.add(edge);
+        });
+        
+        // Add stadium stands with audience behind walls
+        createStadiumAudience(boundarySize, wallHeight);
+    }
+    
+    function createStadiumAudience(arenaSize, wallHeight) {
+        // Get quality settings
+        const settings = GraphicsSettings.get();
+        
+        // Skip creating detailed audience on low quality
+        if (settings.quality === 'low') {
+            // Just add a simple colored box representing the stands
+            createSimpleStadiumOutline(arenaSize, wallHeight);
+            return;
+        }
+        
+        // Stadium configuration - SIGNIFICANTLY REDUCED complexity
+        const standDepth = 70;
+        const standHeight = 60;
+        const standInset = 20; // Inset from the arena wall
+        const sectionWidth = 80;
+        
+        // Use a simple color instead of texture for better compatibility
+        const concreteColor = 0x888888;
+        
+        // Use basic materials for better performance
+        const standMaterial = new THREE.MeshBasicMaterial({
+            color: concreteColor
+        });
+        
+        // Use a simple material for crowds
+        const crowdMaterial = new THREE.MeshBasicMaterial({
+            color: 0xdddddd, 
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        // Only create towers on medium/high quality
+        if (settings.quality === 'high') {
+            // Create giant light towers at the corners of the stadium
+            const towerPositions = [
+                [arenaSize/2 + standInset + 30, arenaSize/2 + standInset + 30],
+                [-(arenaSize/2 + standInset + 30), -(arenaSize/2 + standInset + 30)]
+            ]; 
+            
+            // Create the light towers first - only creating 2 for performance
+            towerPositions.forEach(pos => {
+                createSimpleLightTower(pos[0], pos[1], wallHeight + standHeight + 40);
+            });
+        }
+        
+        // Number of sides based on quality
+        const numSides = settings.quality === 'high' ? 2 : 1;
+        
+        // Create stands on one or two sides depending on quality
+        for (let side = 0; side < numSides; side++) {
+            // Determine stand position based on side
+            let standX = 0, standZ = 0, rotationY = 0;
+            const sidePos = (arenaSize / 2) + standInset;
+            
+            if (side === 0) { // North
+                standZ = -sidePos;
+                rotationY = 0;
+            } else if (side === 1) { // East
+                standX = sidePos;
+                rotationY = Math.PI / 2;
+            }
+            
+            // Create reduced number of sections
+            const stepSize = settings.quality === 'high' ? 2 : 4;
+            for (let section = -2; section <= 2; section += stepSize) {
+                // Position along the side
+                let sectionOffsetX = 0, sectionOffsetZ = 0;
+                
+                if (side === 0) {
+                    sectionOffsetX = section * sectionWidth;
+                } else {
+                    sectionOffsetZ = section * sectionWidth;
+                }
+                
+                // Create a single large base for the entire section instead of individual steps
+                const baseGeometry = new THREE.BoxGeometry(
+                    side % 2 === 0 ? sectionWidth : standDepth,
+                    standHeight,
+                    side % 2 === 0 ? standDepth : sectionWidth
+                );
+                
+                const base = new THREE.Mesh(baseGeometry, standMaterial);
+                base.position.set(
+                    standX + sectionOffsetX, 
+                    wallHeight + standHeight/2, 
+                    standZ + sectionOffsetZ
+                );
+                base.rotation.y = rotationY;
+                scene.add(base);
+                
+                // Add a single large crowd plane instead of individual spectators
+                const crowdPlane = new THREE.PlaneGeometry(sectionWidth * 0.95, standHeight * 0.5);
+                const crowd = new THREE.Mesh(crowdPlane, crowdMaterial);
+                
+                // Position the crowd on top of the stand
+                crowd.position.set(0, standHeight * 0.3, -standDepth * 0.3);
+                crowd.rotation.x = -Math.PI / 12; // Slight tilt
+                crowd.rotation.y = side % 2 === 0 ? Math.PI : Math.PI/2;
+                
+                // Add to base
+                base.add(crowd);
+                
+                // Only animate on high quality
+                if (settings.quality === 'high') {
+                    animateCrowdSection(crowd, Math.random() < 0.3);
+                }
+                
+                // Only add lights on medium/high
+                if (settings.quality === 'high') {
+                    addSimpleSectionLight(standX + sectionOffsetX, standZ + sectionOffsetZ, 
+                                     standHeight, wallHeight, side, rotationY);
+                }
+            }
+        }
+        
+        // Add ambient lighting - essential for all quality levels
+        const ambientLight = new THREE.AmbientLight(0xCCCCFF, 0.4);
+        scene.add(ambientLight);
+        
+        // Only add spotlight on medium/high quality
+        if (settings.quality !== 'low') {
+            // Add just one main stadium light
+            const mainLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+            mainLight.position.set(arenaSize/2, standHeight * 4, arenaSize/2);
+            mainLight.target.position.set(0, 0, 0);
+            scene.add(mainLight);
+            scene.add(mainLight.target);
+        }
+    }
+    
+    // Ultra-simplified stadium for low quality
+    function createSimpleStadiumOutline(arenaSize, wallHeight) {
+        // Just create simple colored boxes for the stands
+        const standMaterial = new THREE.MeshBasicMaterial({ color: 0x888888 });
+        const standHeight = 60;
+        
+        // Create a single large box for each side of the stadium
+        const sides = [
+            { x: 0, z: -arenaSize/2 - 20, width: arenaSize, depth: 50, rot: 0 } // North
+        ];
+        
+        sides.forEach(side => {
+            const standGeometry = new THREE.BoxGeometry(
+                side.width, 
+                standHeight, 
+                side.depth
+            );
+            
+            const stand = new THREE.Mesh(standGeometry, standMaterial);
+            stand.position.set(
+                side.x,
+                wallHeight + standHeight/2,
+                side.z
+            );
+            stand.rotation.y = side.rot;
+            scene.add(stand);
+        });
+        
+        // Add ambient lighting
+        const ambientLight = new THREE.AmbientLight(0xCCCCFF, 0.4);
+        scene.add(ambientLight);
+    }
+    
+    // Simplified light tower with fewer elements
+    function createSimpleLightTower(x, z, height) {
+        // Create a very simple tower
+        const towerGeometry = new THREE.BoxGeometry(10, height, 10);
+        const towerMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+        const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+        tower.position.set(x, height/2, z);
+        scene.add(tower);
+        
+        // Add just one spotlight
+        const spotlight = new THREE.SpotLight(0xFFFFFF, 2, 1000, Math.PI / 8, 0.5, 1);
+        spotlight.position.set(x, height * 0.9, z);
+        spotlight.target.position.set(0, 0, 0); // Point at arena center
+        scene.add(spotlight);
+        scene.add(spotlight.target);
+    }
+    
+    // Simplified section lighting
+    function addSimpleSectionLight(x, z, standHeight, wallHeight, side, rotationY) {
+        // Add one simple light per section
+        const light = new THREE.PointLight(0xFFFFFF, 0.5, 100);
+        light.position.set(x, wallHeight + standHeight * 0.8, z);
+        scene.add(light);
+    }
+    
+    function animateCrowdSection(crowdGroup, isExcited) {
+        // Define animation properties
+        const animSpeed = isExcited ? 0.05 : 0.02;
+        const animRange = isExcited ? 0.2 : 0.1;
+        
+        // Animation parameters 
+        crowdGroup.userData = {
+            baseY: crowdGroup.position.y,
+            time: Math.random() * Math.PI * 2, // Random starting phase
+            isExcited: isExcited,
+            excitementTime: 0,
+            animSpeed: animSpeed,
+            animRange: animRange
+        };
+        
+        // Add animation function to be called each frame
+        scene.userData.crowdGroups = scene.userData.crowdGroups || [];
+        scene.userData.crowdGroups.push(crowdGroup);
+    }
+    
+    // Simplified animation for crowd
+    function updateCrowds() {
+        // Only update crowds every 3 frames to reduce CPU load
+        if (scene.userData.crowdAnimFrameSkip === undefined) {
+            scene.userData.crowdAnimFrameSkip = 0;
+        }
+        
+        scene.userData.crowdAnimFrameSkip++;
+        if (scene.userData.crowdAnimFrameSkip % 3 !== 0) {
+            return; // Skip this frame
+        }
+        
+        // Animate crowd with very simple movement
+        if (scene.userData.crowdGroups) {
+            const time = Date.now() * 0.001; // Use time for animation instead of frame counting
+            
+            scene.userData.crowdGroups.forEach(crowdGroup => {
+                if (crowdGroup && crowdGroup.userData) {
+                    // Only animate if visible and in view
+                    if (!crowdGroup.visible) return;
+                    
+                    // Simple sine wave animation with fixed parameters
+                    if (crowdGroup.userData.startPhase === undefined) {
+                        crowdGroup.userData.startPhase = Math.random() * Math.PI * 2;
+                    }
+                    
+                    const phase = crowdGroup.userData.startPhase;
+                    const newY = (Math.sin(time + phase) * 0.1);
+                    
+                    // Apply animation with fewer matrix calculations
+                    crowdGroup.position.y = newY;
+                }
+            });
+        }
+    }
+    
+    function addStructuralSupports(x, z, standHeight, wallHeight, standDepth, side, rotationY) {
+        // Add structural columns
+        const columnRadius = 2;
+        const columnHeight = wallHeight + standHeight * 0.8;
+        const columnGeometry = new THREE.CylinderGeometry(columnRadius, columnRadius, columnHeight, 8);
+        const columnMaterial = new THREE.MeshStandardMaterial({
+            color: 0x888888,
+            roughness: 0.7,
+            metalness: 0.2
+        });
+        
+        // Position columns at the corners
+        const positions = [
+            [15, -standDepth/2 + columnRadius/2],
+            [-15, -standDepth/2 + columnRadius/2],
+            [15, standDepth/2 - columnRadius/2],
+            [-15, standDepth/2 - columnRadius/2]
+        ];
+        
+        positions.forEach(pos => {
+            let colX = 0, colZ = 0;
+            
+            if (side % 2 === 0) {
+                colX = x + pos[0];
+                colZ = z + pos[1];
+            } else {
+                colX = x + pos[1];
+                colZ = z + pos[0];
+            }
+            
+            const column = new THREE.Mesh(columnGeometry, columnMaterial);
+            column.position.set(colX, columnHeight/2, colZ);
+            scene.add(column);
+            
+            // Add column base
+            const baseGeometry = new THREE.BoxGeometry(columnRadius * 2 + 1, columnRadius, columnRadius * 2 + 1);
+            const baseMaterial = new THREE.MeshStandardMaterial({
+                color: 0x666666,
+                roughness: 0.9
+            });
+            
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.set(colX, columnRadius/2, colZ);
+            scene.add(base);
+        });
+    }
+    
+    function addHandrails(x, z, standHeight, wallHeight, totalSteps, stepHeight, stepDepth, side, rotationY, stepWidth) {
+        // Add handrails on the steps
+        const railColor = 0xCCCCCC;
+        const railMaterial = new THREE.MeshStandardMaterial({
+            color: railColor,
+            roughness: 0.5,
+            metalness: 0.7
+        });
+        
+        // Add two sets of railings - one on each end
+        for (let railSide = -1; railSide <= 1; railSide += 2) {
+            // Skip some railings randomly
+            if (Math.random() < 0.3) continue;
+            
+            let railX = side % 2 === 0 ? x + railSide * stepWidth/2 : x;
+            let railZ = side % 2 === 0 ? z : z + railSide * stepWidth/2;
+            
+            // Create vertical posts
+            for (let step = 0; step < totalSteps; step++) {
+                const railHeight = 5;
+                const postGeometry = new THREE.CylinderGeometry(0.3, 0.3, railHeight, 6);
+                
+                // Calculate position for each step
+                let postX = railX;
+                let postZ = railZ;
+                
+                // Offset for the step progression
+                if (side === 0) {
+                    postZ += step * stepDepth - standHeight/2 + stepDepth/2;
+                } else if (side === 1) {
+                    postX += -(step * stepDepth - standHeight/2 + stepDepth/2);
+                } else if (side === 2) {
+                    postZ += -(step * stepDepth - standHeight/2 + stepDepth/2);
+                } else {
+                    postX += step * stepDepth - standHeight/2 + stepDepth/2;
+                }
+                
+                const post = new THREE.Mesh(postGeometry, railMaterial);
+                post.position.set(
+                    postX,
+                    wallHeight + step * stepHeight + railHeight/2,
+                    postZ
+                );
+                scene.add(post);
+                
+                // Add horizontal railings connecting posts
+                if (step < totalSteps - 1) {
+                    const railLength = Math.sqrt(stepDepth * stepDepth + stepHeight * stepHeight);
+                    const railGeometry = new THREE.CylinderGeometry(0.2, 0.2, railLength, 6);
+                    
+                    const rail = new THREE.Mesh(railGeometry, railMaterial);
+                    
+                    // Position halfway between current post and next post
+                    let nextPostX = postX;
+                    let nextPostZ = postZ;
+                    
+                    if (side === 0) {
+                        nextPostZ += stepDepth;
+                    } else if (side === 1) {
+                        nextPostX -= stepDepth;
+                    } else if (side === 2) {
+                        nextPostZ -= stepDepth;
+                    } else {
+                        nextPostX += stepDepth;
+                    }
+                    
+                    // Position the rail
+                    rail.position.set(
+                        (postX + nextPostX) / 2,
+                        wallHeight + step * stepHeight + railHeight - 0.5,
+                        (postZ + nextPostZ) / 2
+                    );
+                    
+                    // Rotate the rail according to the step slope
+                    const angle = Math.atan2(stepHeight, stepDepth);
+                    
+                    if (side === 0) {
+                        rail.rotation.x = Math.PI/2 - angle;
+                        rail.rotation.z = Math.PI/2;
+                    } else if (side === 1) {
+                        rail.rotation.x = Math.PI/2;
+                        rail.rotation.z = Math.PI/2 - angle;
+                    } else if (side === 2) {
+                        rail.rotation.x = Math.PI/2 + angle;
+                        rail.rotation.z = Math.PI/2;
+                    } else {
+                        rail.rotation.x = Math.PI/2;
+                        rail.rotation.z = Math.PI/2 + angle;
+                    }
+                    
+                    scene.add(rail);
+                }
+            }
+        }
+    }
+    
+    function addStadiumDetails(x, z, side, rotationY, wallHeight) {
+        // Add entrance tunnels
+        const tunnelWidth = 8;
+        const tunnelHeight = 8;
+        const tunnelDepth = 15;
+        
+        const tunnelGeometry = new THREE.BoxGeometry(tunnelWidth, tunnelHeight, tunnelDepth);
+        const tunnelMaterial = new THREE.MeshStandardMaterial({
+            color: 0x222222,
+            roughness: 1.0,
+            metalness: 0.0
+        });
+        
+        // Calculate tunnel position
+        let tunnelX = x;
+        let tunnelZ = z;
+        
+        if (side === 0) { // North
+            tunnelZ -= 20;
+        } else if (side === 1) { // East
+            tunnelX += 20;
+        } else if (side === 2) { // South
+            tunnelZ += 20;
+        } else { // West
+            tunnelX -= 20;
+        }
+        
+        const tunnel = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
+        tunnel.position.set(tunnelX, wallHeight/2, tunnelZ);
+        tunnel.rotation.y = rotationY;
+        scene.add(tunnel);
+        
+        // Add tunnel light
+        const tunnelLight = new THREE.PointLight(0xFFCC88, 0.8, 20);
+        tunnelLight.position.set(tunnelX, wallHeight/2, tunnelZ);
+        scene.add(tunnelLight);
+        
+        // Random decorative elements
+        if (Math.random() < 0.5) {
+            // Add banners or signs 
+            const signColors = [0xFF0000, 0xFFFF00, 0x00FF00];
+            const signGeometry = new THREE.PlaneGeometry(10, 5);
+            const signMaterial = new THREE.MeshBasicMaterial({ 
+                color: signColors[Math.floor(Math.random() * signColors.length)],
+                side: THREE.DoubleSide
+            });
+            
+            const sign = new THREE.Mesh(signGeometry, signMaterial);
+            
+            // Position the sign above the tunnel
+            sign.position.set(tunnelX, wallHeight + 5, tunnelZ);
+            sign.rotation.y = rotationY;
+            
+            scene.add(sign);
+        }
+    }
+    
+    function addSectionLighting(x, z, standHeight, wallHeight, side, rotationY) {
+        // Add spotlights to illuminate each section
+        const lightColor = 0xFFFFFF;
+        
+        // Calculate spotlight position
+        let spotX = x;
+        let spotZ = z;
+        let targetX = x;
+        let targetZ = z;
+        
+        // Position depends on which side we're on
+        if (side === 0) {
+            spotZ -= 40;
+            targetZ += 20;
+        } else if (side === 1) {
+            spotX += 40;
+            targetX -= 20;
+        } else if (side === 2) {
+            spotZ += 40;
+            targetZ -= 20;
+        } else {
+            spotX -= 40;
+            targetX += 20;
+        }
+        
+        // Create a spotlight pointing at the section
+        const spotlight = new THREE.SpotLight(
+            lightColor,
+            0.8,
+            200,
+            Math.PI / 6,
+            0.5,
+            1
+        );
+        
+        spotlight.position.set(spotX, wallHeight + standHeight + 10, spotZ);
+        spotlight.target.position.set(targetX, wallHeight, targetZ);
+        
+        scene.add(spotlight);
+        scene.add(spotlight.target);
+        
+        // Add light fixture
+        const fixtureGeometry = new THREE.CylinderGeometry(2, 3, 4, 8);
+        const fixtureMaterial = new THREE.MeshStandardMaterial({
+            color: 0x333333,
+            metalness: 0.8,
+            roughness: 0.2
+        });
+        
+        const fixture = new THREE.Mesh(fixtureGeometry, fixtureMaterial);
+        fixture.position.copy(spotlight.position);
+        
+        // Rotate fixture to point at target
+        const dx = targetX - spotX;
+        const dy = wallHeight - (wallHeight + standHeight + 10);
+        const dz = targetZ - spotZ;
+        
+        fixture.lookAt(new THREE.Vector3(targetX, wallHeight, targetZ));
+        
+        scene.add(fixture);
+    }
+    
+    function animateCrowdSection(crowdGroup, isExcited) {
+        // Define animation properties
+        const animSpeed = isExcited ? 0.05 : 0.02;
+        const animRange = isExcited ? 0.2 : 0.1;
+        
+        // Animation parameters 
+        crowdGroup.userData = {
+            baseY: crowdGroup.position.y,
+            time: Math.random() * Math.PI * 2, // Random starting phase
+            isExcited: isExcited,
+            excitementTime: 0,
+            animSpeed: animSpeed,
+            animRange: animRange
+        };
+        
+        // Add animation function to be called each frame
+        scene.userData.crowdGroups = scene.userData.crowdGroups || [];
+        scene.userData.crowdGroups.push(crowdGroup);
+    }
+    
+    // Simplified animation for crowd
+    function updateCrowds() {
+        // Only update crowds every 3 frames to reduce CPU load
+        if (scene.userData.crowdAnimFrameSkip === undefined) {
+            scene.userData.crowdAnimFrameSkip = 0;
+        }
+        
+        scene.userData.crowdAnimFrameSkip++;
+        if (scene.userData.crowdAnimFrameSkip % 3 !== 0) {
+            return; // Skip this frame
+        }
+        
+        // Animate crowd with very simple movement
+        if (scene.userData.crowdGroups) {
+            const time = Date.now() * 0.001; // Use time for animation instead of frame counting
+            
+            scene.userData.crowdGroups.forEach(crowdGroup => {
+                if (crowdGroup && crowdGroup.userData) {
+                    // Only animate if visible and in view
+                    if (!crowdGroup.visible) return;
+                    
+                    // Simple sine wave animation with fixed parameters
+                    if (crowdGroup.userData.startPhase === undefined) {
+                        crowdGroup.userData.startPhase = Math.random() * Math.PI * 2;
+                    }
+                    
+                    const phase = crowdGroup.userData.startPhase;
+                    const newY = (Math.sin(time + phase) * 0.1);
+                    
+                    // Apply animation with fewer matrix calculations
+                    crowdGroup.position.y = newY;
+                }
+            });
+        }
+    }
+    
+    function animateBanner(banner) {
+        // Add animation parameters
+        banner.userData = {
+            time: Math.random() * Math.PI * 2,
+            waveSpeed: 0.02 + Math.random() * 0.02,
+            waveAmplitude: 0.05 + Math.random() * 0.05
+        };
+        
+        // Add to animation list
+        scene.userData.banners = scene.userData.banners || [];
+        scene.userData.banners.push(banner);
+    }
+    
+    // Update banners in animation loop
+    function updateBanners() {
+        if (scene.userData.banners) {
+            scene.userData.banners.forEach(banner => {
+                if (banner.userData) {
+                    banner.userData.time += banner.userData.waveSpeed;
+                    
+                    // Wave effect
+                    banner.rotation.z = Math.sin(banner.userData.time) * banner.userData.waveAmplitude;
+                }
+            });
+        }
+    }
+    
+    function animateStadiumLight(light, lightMesh) {
+        // Random interval for flashing
+        const duration = 1000 + Math.random() * 3000;
+        
+        // Flash the light
+        const flashLight = () => {
+            // Turn down
+            light.intensity = 0.3;
+            if (lightMesh) lightMesh.scale.set(0.6, 0.6, 0.6);
+            
+            // Wait, then turn on
+            setTimeout(() => {
+                light.intensity = 1 + Math.random() * 2;
+                if (lightMesh) lightMesh.scale.set(1, 1, 1);
+                
+                // Schedule next flash
+                setTimeout(flashLight, duration);
+            }, 100 + Math.random() * 200);
+        };
+        
+        // Start the animation cycle
+        setTimeout(flashLight, Math.random() * duration);
+    }
+    
+    // Simplified function that doesn't generate textures
+    function generateNoiseTexture() {
+        // This function is now a placeholder
+        return null;
+    }
+    
+    // Simplified function that doesn't generate textures
+    function generateCrowdTexture() {
+        // This function is now a placeholder and doesn't generate textures
+        return null;
+    }
+    
+    // Simplified function that no longer updates textures
+    function updateCrowdTexture() {
+        // This is now a placeholder function
+        return;
+    }
+    
+    function createTruck() {
+        // Create a better-looking truck, but still with NO ROTATION
+        truck = new THREE.Group();
+        
+        // Chassis with improved visuals
+        const chassisGeometry = new THREE.BoxGeometry(4.5, 1, 8);
+        const chassisMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff00ff,
+            shininess: 80,
+            specular: 0xffffff
+        });
+        const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+        chassis.position.y = 0.5;
+        truck.add(chassis);
+        
+        // Add neon trim to chassis
+        const trimGeometry = new THREE.BoxGeometry(4.6, 0.1, 8.1);
+        const trimMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const trim = new THREE.Mesh(trimGeometry, trimMaterial);
+        trim.position.y = 1.05;
+        truck.add(trim);
+        
+        // Cab with better detailing
+        const cabGeometry = new THREE.BoxGeometry(4, 1.5, 3);
+        const cabMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff00ff,
+            shininess: 90,
+            specular: 0xffffff
+        });
+        const cab = new THREE.Mesh(cabGeometry, cabMaterial);
+        cab.position.set(0, 1.5, -2);
+        truck.add(cab);
+        
+        // Windshield
+        const windshieldGeometry = new THREE.PlaneGeometry(3.5, 1.2);
+        const windshieldMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide
+        });
+        const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
+        windshield.position.set(0, 1.8, -3.2);
+        windshield.rotation.x = 0.3;
+        truck.add(windshield);
+        
+        // Add headlights
+        const headlightGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+        const headlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        
+        // Left headlight
+        const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+        leftHeadlight.position.set(-1.5, 0.8, -4);
+        truck.add(leftHeadlight);
+        
+        // Right headlight
+        const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+        rightHeadlight.position.set(1.5, 0.8, -4);
+        truck.add(rightHeadlight);
+        
+        // Create spinning wheels that can animate
+        const wheelRadius = 1.4;
+        const wheelWidth = 1.0;
+        const wheelGeometry = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 24);
+        const wheelMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x333333,
+            shininess: 30
+        });
+        
+        // Wheel hub material
+        const hubGeometry = new THREE.CylinderGeometry(wheelRadius * 0.5, wheelRadius * 0.5, wheelWidth + 0.1, 16);
+        const hubMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xdddddd,
+            shininess: 100,
+            specular: 0xffffff
+        });
+        
+        // Store wheel references
+        truck.userData.wheels = [];
+        
+        const wheelPositions = [
+            {x: -2.2, y: wheelRadius, z: -3, steering: true}, // Front left
+            {x: 2.2, y: wheelRadius, z: -3, steering: true},  // Front right
+            {x: -2.2, y: wheelRadius, z: 3, steering: false}, // Rear left
+            {x: 2.2, y: wheelRadius, z: 3, steering: false}   // Rear right
+        ];
+        
+        wheelPositions.forEach(pos => {
+            // Create wheel group
+            const wheelGroup = new THREE.Group();
+            wheelGroup.position.set(pos.x, pos.y, pos.z);
+            
+            // Create wheel mesh
+            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            wheel.rotation.z = Math.PI / 2; // Correct wheel orientation
+            wheelGroup.add(wheel);
+            
+            // Add hub cap
+            const hub = new THREE.Mesh(hubGeometry, hubMaterial);
+            hub.rotation.z = Math.PI / 2;
+            wheelGroup.add(hub);
+            
+            // Add wheel group to truck
+            truck.add(wheelGroup);
+            
+            // Store wheel reference
+            truck.userData.wheels.push({
+                group: wheelGroup,
+                mesh: wheel,
+                steering: pos.steering,
+                rotation: 0
+            });
+        });
+        
+        // Add fancy neon underglow
+        const glowGeometry = new THREE.PlaneGeometry(6, 10);
+        const glowMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ffff, 
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide
+        });
+        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+        glow.rotation.x = Math.PI / 2;
+        glow.position.y = -0.5;
+        truck.add(glow);
+        
+        // Set initial position
+        truck.position.set(0, 2, 0);
+        
+        // Make sure there's absolutely no rotation initially
+        truck.rotation.set(0, 0, 0);
+        
+        // Add to scene
+        scene.add(truck);
+        
+        // Add properties for movement
+        truck.userData = {
+            speed: 0,
+            direction: 0, // Direction in radians
+            height: 2,    // Height above ground
+            onGround: true,
+            wasOnRamp: false,
+            wheels: truck.userData.wheels
+        };
+    }
+    
+    function onKeyDown(event) {
+        keys[event.key.toLowerCase()] = true;
+    }
+    
+    function onKeyUp(event) {
+        keys[event.key.toLowerCase()] = false;
+    }
+    
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    
+    function updateTruck() {
+        // Enhanced driving constants for better feel
+        const ACCELERATION = 0.08;       // Smoother acceleration
+        const MAX_SPEED = 2.0;           // Higher top speed
+        const MAX_REVERSE_SPEED = 1.0;   // Decent reverse speed
+        const STEERING_SPEED = 0.06;     // 50% tighter turning radius (was 0.04)
+        const DRIFT_FACTOR = 0.92;       // Slight drift effect
+        
+        // Dynamic handling variables
+        const speed = truck.userData.speed || 0;
+        const speedPercent = Math.min(1, Math.abs(speed) / MAX_SPEED);
+        
+        // Get current direction and store old direction for drift calculations
+        const oldDirection = truck.userData.direction || 0;
+        let newDirection = oldDirection;
+        
+        // Changed controls: left/right arrows steer, up/down drive forward/backward
+        // Steer only when moving or very slightly when stationary
+        if (Math.abs(speed) > 0.1) {
+            // Normal steering when moving
+            const adaptiveSteering = STEERING_SPEED * (1 - speedPercent * 0.5);
+            
+            if (keys['arrowleft']) {
+                newDirection += adaptiveSteering; // Turn left
+            }
+            if (keys['arrowright']) {
+                newDirection -= adaptiveSteering; // Turn right
+            }
+        } else {
+            // Very subtle steering when stationary
+            if (keys['arrowleft']) {
+                newDirection += STEERING_SPEED * 0.2; 
+            }
+            if (keys['arrowright']) {
+                newDirection -= STEERING_SPEED * 0.2;
+            }
+        }
+        
+        // Add momentum to steering for smoother direction changes
+        truck.userData.direction = oldDirection * 0.1 + newDirection * 0.9;
+        
+        // Actually ROTATE the truck model to match its direction
+        truck.rotation.y = truck.userData.direction;
+        
+        // Calculate movement vectors - always relative to truck's current rotation
+        // Forward is always the direction the truck is facing
+        const dirX = Math.sin(truck.userData.direction);
+        const dirZ = Math.cos(truck.userData.direction);
+        
+        // Enhanced acceleration with better responsiveness
+        if (keys['arrowup']) {
+            // Progressive acceleration - slower at start, quicker in the middle range
+            const accelFactor = 1 - (Math.pow(speed / MAX_SPEED, 2) * 0.8);
+            truck.userData.speed = Math.min(truck.userData.speed + ACCELERATION * accelFactor, MAX_SPEED);
+        } else if (keys['arrowdown']) {
+            if (speed > 0.1) {
+                // Braking when going forward - stronger braking effect
+                truck.userData.speed *= 0.9;
+            } else {
+                // Reverse acceleration
+                truck.userData.speed = Math.max(truck.userData.speed - ACCELERATION, -MAX_REVERSE_SPEED);
+            }
+        } else {
+            // Natural deceleration - more gradual
+            truck.userData.speed *= 0.98;
+            
+            // Eliminate tiny speeds
+            if (Math.abs(truck.userData.speed) < 0.01) {
+                truck.userData.speed = 0;
+            }
+        }
+        
+        // Handle drifting effect for more fun driving
+        // Direction of travel isn't exactly the direction the truck is facing
+        let moveX, moveZ;
+        
+        if (Math.abs(truck.userData.speed) > 0.5) {
+            // At speed, allow some drift
+            const driftDirection = oldDirection;
+            
+            // Blend actual direction with drift direction
+            moveX = (dirX * truck.userData.speed * (1 - DRIFT_FACTOR)) + 
+                   (Math.sin(driftDirection) * truck.userData.speed * DRIFT_FACTOR);
+            moveZ = (dirZ * truck.userData.speed * (1 - DRIFT_FACTOR)) + 
+                   (Math.cos(driftDirection) * truck.userData.speed * DRIFT_FACTOR);
+        } else {
+            // At low speeds, no drift
+            moveX = dirX * truck.userData.speed;
+            moveZ = dirZ * truck.userData.speed;
+        }
+        
+        // Store previous position for collision detection
+        const prevX = truck.position.x;
+        const prevZ = truck.position.z;
+        
+        // Update truck position with momentum
+        truck.position.x += moveX;
+        truck.position.z += moveZ;
+        
+        // Animate wheels based on speed
+        if (truck.userData.wheels) {
+            truck.userData.wheels.forEach(wheel => {
+                wheel.rotation += truck.userData.speed * 0.2;
+            });
+        }
+        
+        // Only allow rotation around y-axis (steering)
+        truck.rotation.x = 0;
+        truck.rotation.z = 0;
+        
+        // Update wheel steering to match direction
+        if (truck.userData.wheels) {
+            truck.userData.wheels.forEach(wheel => {
+                if (wheel.steering) {
+                    // Visualize steering by rotating front wheels relative to truck
+                    // The steering wheels turn in the direction of the turn
+                    const steeringAmount = Math.sin(truck.userData.direction - oldDirection) * 5;
+                    const steeringDirection = keys['arrowleft'] ? 0.4 : 
+                                            keys['arrowright'] ? -0.4 : 
+                                            steeringAmount;
+                    
+                    // Apply smooth steering transition
+                    const currentSteering = wheel.group.rotation.y || 0;
+                    const newSteering = currentSteering * 0.8 + steeringDirection * 0.2;
+                    wheel.group.rotation.y = newSteering;
+                }
+                
+                // Rotate wheels based on speed
+                wheel.rotation += truck.userData.speed * 0.2;
+                wheel.mesh.rotation.x = wheel.rotation;
+            });
+        }
+        
+        // Simple boundary collision - just reverse direction
+        const boundaryLimit = 350; // Slightly smaller than the actual boundary walls
+        
+        let hitBoundary = false;
+        
+        // Check X boundary (East/West walls)
+        if (Math.abs(truck.position.x) > boundaryLimit) {
+            hitBoundary = true;
+            
+            // Place truck at boundary limit
+            truck.position.x = Math.sign(truck.position.x) * boundaryLimit;
+        }
+        
+        // Check Z boundary (North/South walls)
+        if (Math.abs(truck.position.z) > boundaryLimit) {
+            hitBoundary = true;
+            
+            // Place truck at boundary limit
+            truck.position.z = Math.sign(truck.position.z) * boundaryLimit;
+        }
+        
+        // If hit a boundary, simply reverse direction
+        if (hitBoundary) {
+            // Simply reverse the speed (direction stays the same)
+            truck.userData.speed = -truck.userData.speed * 0.8;
+            
+            // Add a small bounce effect
+            truck.position.y += 0.4;
+            
+            // Add score for wall hit
+            score += 10;
+            document.getElementById('score').textContent = `SCORE: ${score}`;
+            
+            // Multiplayer: Update score on server
+            if (isConnected) {
+                sendScoreUpdate();
+            }
+            
+            // Visual feedback - small bounce animation
+            truck.userData.wallBounceTime = 8;
+        }
+        
+        // Check for collision with big blocks (bounce off like walls)
+        if (scene.userData.bigBlocks) {
+            scene.userData.bigBlocks.forEach(block => {
+                const dx = truck.position.x - block.position.x;
+                const dz = truck.position.z - block.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                const minDistance = block.size/2 + 3; // 3 is approximate truck radius
+                
+                if (distance < minDistance) {
+                    // Collision detected
+                    // Calculate normalized collision vector
+                    const nx = dx / distance;
+                    const nz = dz / distance;
+                    
+                    // Move truck outside the block
+                    truck.position.x = block.position.x + nx * minDistance;
+                    truck.position.z = block.position.z + nz * minDistance;
+                    
+                    // Bounce effect - reflect velocity
+                    const bounceForce = 0.8;
+                    truck.userData.speed *= -bounceForce;
+                    
+                    // Add score for block hit
+                    score += 15;
+                    document.getElementById('score').textContent = `SCORE: ${score}`;
+                    
+                    // Multiplayer: Update score on server
+                    if (isConnected) {
+                        sendScoreUpdate();
+                    }
+                    
+                    // Play crowd "oohs" sound
+                    AudioSystem.playSfx('crowdOohs', 0.2);
+                    
+                    // Visual feedback - bounce animation
+                    truck.userData.wallBounceTime = 10;
+                    
+                    // Jump effect
+                    truck.position.y += 0.6;
+                }
+            });
+        }
+        
+        // Check collision with destructible obstacles
+        if (scene.userData.destructibleObstacles) {
+            scene.userData.destructibleObstacles.forEach(obstacle => {
+                // Only check non-exploding obstacles
+                if (!obstacle.exploding && obstacle.mainBox.visible) {
+                    const obstacleWorldPos = new THREE.Vector3();
+                    obstacle.group.getWorldPosition(obstacleWorldPos);
+                    
+                    const dx = truck.position.x - obstacleWorldPos.x;
+                    const dz = truck.position.z - obstacleWorldPos.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    const minDistance = obstacle.size/2 + 3; // 3 is approximate truck radius
+                    
+                    if (distance < minDistance) {
+                        // Collision detected - start explosion
+                        obstacle.exploding = true;
+                        obstacle.explosionTime = 0;
+                        
+                        // Hide the main box
+                        obstacle.mainBox.visible = false;
+                        
+                        // Show the explosion pieces
+                        obstacle.pieces.forEach(piece => {
+                            piece.mesh.visible = true;
+                            piece.mesh.position.set(0, 0, 0);
+                            piece.mesh.material.opacity = 1;
+                        });
+                        
+                        // Slow down the truck slightly
+                        truck.userData.speed *= 0.8;
+                        
+                        // Add score for destroying obstacle
+                        score += 25;
+                        document.getElementById('score').textContent = `SCORE: ${score}`;
+                        
+                        // Multiplayer: Notify server about destroyed obstacle
+                        if (isConnected) {
+                            // Find the index of this obstacle in the array
+                            const obstacleIndex = scene.userData.destructibleObstacles.indexOf(obstacle);
+                            if (obstacleIndex !== -1) {
+                                sendObstacleDestroyed(obstacleIndex);
+                            }
+                            
+                            // Update score on the server
+                            sendScoreUpdate();
+                        }
+                        
+                        // Play crowd cheers sound
+                        AudioSystem.generateCrowdCheer();
+                        // Also use the playSfx method as a fallback
+                        AudioSystem.playSfx('crowdCheers', 0.3);
+                        
+                        // Visual feedback
+                        truck.userData.wallBounceTime = 5;
+                    }
+                }
+            });
+        }
+        
+        // Update exploding obstacles
+        if (scene.userData.destructibleObstacles) {
+            scene.userData.destructibleObstacles.forEach(obstacle => {
+                if (obstacle.exploding) {
+                    obstacle.explosionTime++;
+                    
+                    // Update each piece
+                    obstacle.pieces.forEach(piece => {
+                        // Move pieces outward
+                        piece.mesh.position.x += piece.direction.x * 0.3;
+                        piece.mesh.position.y += piece.direction.y * 0.3 + 0.05; // Add some upward movement
+                        piece.mesh.position.z += piece.direction.z * 0.3;
+                        
+                        // Rotate pieces
+                        piece.mesh.rotateOnAxis(piece.rotationAxis, piece.rotationSpeed);
+                        
+                        // Fade out pieces
+                        if (obstacle.explosionTime > obstacle.explosionDuration / 2) {
+                            const fadeProgress = (obstacle.explosionTime - obstacle.explosionDuration / 2) / (obstacle.explosionDuration / 2);
+                            piece.mesh.material.opacity = 1 - fadeProgress;
+                        }
+                    });
+                    
+                    // Remove obstacle once explosion is complete
+                    if (obstacle.explosionTime >= obstacle.explosionDuration) {
+                        obstacle.pieces.forEach(piece => {
+                            piece.mesh.visible = false;
+                        });
+                        obstacle.exploding = false;
+                    }
+                }
+            });
+        }
+        
+        // Find and update height based on driving up ramps
+        let onRamp = false;
+        let rampHeight = 0;
+        let rampBounce = 0;
+        
+        // Check if on any of the large ramps
+        if (truck.position.x >= 75 && truck.position.x <= 125 && 
+            truck.position.z >= 135 && truck.position.z <= 165) {
+            // On ramp 1
+            onRamp = true;
+            const rampProgress = Math.abs((truck.position.z - 150) / 15);
+            rampHeight = 10 * (1 - rampProgress);
+        } 
+        else if (truck.position.x >= -150 && truck.position.x <= -90 && 
+                 truck.position.z >= -200 && truck.position.z <= -160) {
+            // On ramp 2
+            onRamp = true;
+            const rampProgress = Math.abs((truck.position.z - (-180)) / 20);
+            rampHeight = 16 * (1 - rampProgress);
+        }
+        else if (truck.position.x >= -75 && truck.position.x <= -25 && 
+                 truck.position.z >= 180 && truck.position.z <= 220) {
+            // On ramp 3
+            onRamp = true;
+            const rampProgress = Math.abs((truck.position.z - 200) / 20);
+            rampHeight = 12 * (1 - rampProgress);
+        }
+        else if (truck.position.x >= 175 && truck.position.x <= 225 && 
+                 truck.position.z >= -120 && truck.position.z <= -80) {
+            // On ramp 4
+            onRamp = true;
+            const rampProgress = Math.abs((truck.position.z - (-100)) / 20);
+            rampHeight = 14 * (1 - rampProgress);
+        }
+        
+        if (onRamp) {
+            // Set truck height based on ramp position
+            if (truck.userData.wasOnRamp) {
+                // Already on ramp, smooth movement
+                truck.position.y = 2 + rampHeight;
+            } else {
+                // Just hit the ramp - add bounce proportional to speed
+                rampBounce = Math.abs(truck.userData.speed) * 0.8;
+                truck.position.y = 2 + rampHeight + rampBounce;
+            }
+            
+            // Remember we're on a ramp
+            truck.userData.wasOnRamp = true;
+            
+            // Add score when on ramps
+            if (rampHeight > 5) {
+                score += 1;
+                document.getElementById('score').textContent = `SCORE: ${score}`;
+                
+                // Multiplayer: Update score on server periodically (not every frame)
+                if (isConnected && Math.random() < 0.05) {
+                    sendScoreUpdate();
+                }
+                
+                // Occasionally play crowd cheers when on ramps
+                if (Math.random() < 0.01) {
+                    // Use the audio system
+                    AudioSystem.generateCrowdCheer();
+                }
+            }
+        } else {
+            // Not on a ramp - normal height plus any active bounce effects
+            truck.position.y = 2;
+            truck.userData.wasOnRamp = false;
+        }
+        
+        // Handle bounce oscillation effect if active
+        if (truck.userData.wallBounceTime > 0) {
+            truck.position.y += Math.sin(truck.userData.wallBounceTime * 0.5) * 0.1;
+            truck.userData.wallBounceTime--;
+        }
+        
+        // Add a subtle "bounce" effect when changing direction at speed
+        if (Math.abs(truck.userData.speed) > 0.5) {
+            // If turning sharply at speed, adjust truck height slightly
+            const turnSharpness = Math.abs(truck.userData.direction - truck.userData.lastDirection || 0);
+            
+            if (turnSharpness > 0.01) {
+                // Add a tiny bounce proportional to turn sharpness and speed
+                truck.position.y += Math.min(0.2, turnSharpness * Math.abs(truck.userData.speed) * 0.1);
+            }
+        }
+        
+        // Remember current direction for next frame
+        truck.userData.lastDirection = truck.userData.direction;
+    }
+    
+    function updateCamera() {
+        // Update camera settings based on keys
+        if (keys['w']) cameraSettings.height += 0.5;
+        if (keys['s']) cameraSettings.height = Math.max(5, cameraSettings.height - 0.5);
+        if (keys['a']) cameraSettings.distance = Math.max(10, cameraSettings.distance - 0.5);
+        if (keys['d']) cameraSettings.distance += 0.5;
+        
+        updateCameraPosition();
+    }
+    
+    function updateCameraPosition() {
+        // Only update if truck exists
+        if (!truck) return;
+        
+        // Calculate camera position based on truck direction and camera settings
+        const truckPos = truck.position;
+        const truckDir = truck.rotation.y; // Use actual truck rotation now
+        
+        // Position camera behind truck
+        const cameraX = truckPos.x - Math.sin(truckDir) * cameraSettings.distance;
+        const cameraZ = truckPos.z - Math.cos(truckDir) * cameraSettings.distance;
+        const cameraY = truckPos.y + cameraSettings.height;
+        
+        // Smoothly move camera (interpolate for smoother following)
+        camera.position.x = camera.position.x * 0.92 + cameraX * 0.08;
+        camera.position.y = camera.position.y * 0.92 + cameraY * 0.08;
+        camera.position.z = camera.position.z * 0.92 + cameraZ * 0.08;
+        
+        // Look at truck with slight offset
+        camera.lookAt(
+            truckPos.x, 
+            truckPos.y + 2, 
+            truckPos.z
+        );
+    }
+    
+    // Frame counter for skipping frames
+    let frameCount = 0;
+    
+    // Main animation loop - optimized
+    function animate() {
+        requestAnimationFrame(animate);
+        frameCount++;
+        
+        try {
+            // Only run updates after everything is initialized
+            if (truck && camera && renderer) {
+                // Always update truck and camera every frame for smooth control
+                updateTruck();
+                updateCamera();
+                
+                // Skip some updates for non-essential animations (every 3rd frame)
+                if (frameCount % 3 === 0) {
+                    // Update stadium animations
+                    if (scene && scene.userData) {
+                        if (scene.userData.crowdGroups) updateCrowds();
+                        if (scene.userData.banners) updateBanners();
+                    }
+                }
+                
+                // Network updates at reduced frequency (every 2nd frame)
+                if (frameCount % 2 === 0) {
+                    // Multiplayer: Update other players
+                    updateOtherPlayers();
+                    
+                    // Multiplayer: Send position updates (or update local state in offline mode)
+                    sendPosition();
+                }
+                
+                // Always render every frame
+                renderer.render(scene, camera);
+            }
+        } catch (error) {
+            console.error("Animation error:", error);
+        }
+    }
+    
+    // Graphics quality settings
+    const GraphicsSettings = {
+        quality: 'low', // 'low', 'medium', 'high'
+        
+        // Performance settings based on quality
+        settings: {
+            low: {
+                shadowsEnabled: false,
+                maxLights: 2,
+                reflectionsEnabled: false,
+                drawDistance: 500,
+                crowdDensity: 0.3,
+                texturesEnabled: false,
+                particlesEnabled: false,
+                maxObstacles: 20,
+                terrainDetail: 20,
+                antialiasing: false
+            },
+            medium: {
+                shadowsEnabled: false,
+                maxLights: 4,
+                reflectionsEnabled: false,
+                drawDistance: 700,
+                crowdDensity: 0.6,
+                texturesEnabled: true,
+                particlesEnabled: true,
+                maxObstacles: 30,
+                terrainDetail: 40,
+                antialiasing: false
+            },
+            high: {
+                shadowsEnabled: true,
+                maxLights: 8,
+                reflectionsEnabled: true,
+                drawDistance: 1000,
+                crowdDensity: 1.0,
+                texturesEnabled: true,
+                particlesEnabled: true,
+                maxObstacles: 40,
+                terrainDetail: 100,
+                antialiasing: true
+            }
+        },
+        
+        // Get current settings
+        get: function() {
+            return this.settings[this.quality];
+        },
+        
+        // Auto-detect appropriate quality level
+        autoDetect: function() {
+            // Start with low quality
+            this.quality = 'low';
+            
+            // Check GPU capabilities
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            
+            if (!gl) {
+                console.warn("WebGL not supported, using low quality");
+                return this.quality;
+            }
+            
+            // Check for memory limits and GPU capabilities
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                console.log("WebGL Renderer:", renderer);
+                
+                // Check if we're on a mobile device
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                // Very basic detection
+                if (!isMobile && (
+                    renderer.includes('NVIDIA') || 
+                    renderer.includes('AMD') || 
+                    renderer.includes('Intel') && !renderer.includes('HD Graphics')
+                )) {
+                    this.quality = 'medium';
+                }
+            }
+            
+            // Check memory
+            if (window.performance && window.performance.memory) {
+                const mem = window.performance.memory;
+                if (mem.jsHeapSizeLimit > 2147483648) { // 2GB
+                    this.quality = 'medium';
+                }
+            }
+            
+            console.log("Auto-detected quality:", this.quality);
+            return this.quality;
+        },
+        
+        // Apply settings to renderer
+        applyToRenderer: function(renderer) {
+            const settings = this.get();
+            
+            if (renderer) {
+                renderer.shadowMap.enabled = settings.shadowsEnabled;
+                renderer.antialias = settings.antialiasing;
+            }
+        }
+    };
+    
+    // Initialize game when the page loads
+    window.addEventListener('load', function() {
+        console.log("Monster Truck Stadium initializing...");
+        
+        // Set quality based on localStorage or auto-detect
+        const savedQuality = localStorage.getItem('monsterTruckQuality');
+        if (savedQuality && savedQuality !== 'auto') {
+            console.log("Using quality setting from preferences:", savedQuality);
+            GraphicsSettings.quality = savedQuality;
+        } else {
+            console.log("Auto-detecting quality settings");
+            GraphicsSettings.autoDetect();
+        }
+        
+        // Initialize audio system
+        AudioSystem.init();
+        
+        // Setup the login screen
+        setupLogin();
+        
+        // Add an error handler for WebGL
+        window.addEventListener('webglcontextlost', function(e) {
+            console.error('WebGL context lost:', e);
+            alert('WebGL context lost. Please refresh the page.');
+        }, false);
+    });
+    </script>
+</body>
+</html>
