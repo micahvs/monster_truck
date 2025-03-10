@@ -2162,12 +2162,14 @@
                 particle.position.add(particle.userData.velocity);
             }
             
-            // Apply gravity if specified
-            if (particle.userData.gravity) {
-                particle.userData.velocity.y -= particle.userData.gravity;
-            } else {
-                // Standard gravity for most particles
-                particle.userData.velocity.y -= 0.01;
+            // Apply gravity if specified and velocity exists
+            if (particle.userData.velocity) {
+                if (particle.userData.gravity) {
+                    particle.userData.velocity.y -= particle.userData.gravity;
+                } else {
+                    // Standard gravity for most particles
+                    particle.userData.velocity.y -= 0.01;
+                }
             }
             
             // Apply rotation if specified
