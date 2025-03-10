@@ -17,3 +17,6 @@
 2025-03-10 06:22:09,903 [INFO] New client connected: b1f462c2-4e7f-4f29-97f8-09f1cc1e639a
 2025-03-10 06:22:09,910 [WARNING] Unknown message type: setTruckType
 2025-03-10 06:22:12,250 [INFO] Active connections: 1
+2025-03-10 06:23:12,252 [INFO] Active connections: 1
+2025-03-10 06:23:36,551 [INFO] Client disconnected: b1f462c2-4e7f-4f29-97f8-09f1cc1e639a
+2025-03-10 06:23:36,552 [INFO] connection closed

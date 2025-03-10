@@ -2826,13 +2826,29 @@
     
     // Multiplayer functions
     function setupMultiplayer() {
-        // Get WebSocket protocol (wss if page is served via https, otherwise ws)
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        // Since we're deployed on Vercel, we need to use a proper WebSocket server
+        // For demo purposes, we'll use a public WebSocket server
+        // In production, you would deploy your own WebSocket server
         
-        // Construct WebSocket URL (default to localhost if connecting directly)
-        const host = window.location.hostname || 'localhost';
-        const wsPort = 8765; // Default WebSocket port
-        const wsUrl = `${protocol}//${host}:${wsPort}`;
+        let wsUrl;
+        
+        // If we're on Vercel or any production environment
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            // Use a dedicated WebSocket server or fallback to mock local play
+            // This could be a separate service like Pusher, Socket.io Cloud, etc.
+            wsUrl = 'wss://monster-truck-server.example.com'; // Replace with your actual WebSocket server
+            
+            // For this demo, we'll just print a message and run in offline mode
+            console.log("Running in production environment - multiplayer disabled");
+            addChatMessage('SYSTEM', 'Multiplayer is disabled in this deployment. Playing in single-player mode.', '#ffff00');
+            return; // Skip connection attempt in production for now
+        } else {
+            // For local development, use the local WebSocket server
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.hostname || 'localhost';
+            const wsPort = 8765; // Default WebSocket port
+            wsUrl = `${protocol}//${host}:${wsPort}`;
+        }
         
         console.log(`Connecting to WebSocket server at ${wsUrl}`);
         
